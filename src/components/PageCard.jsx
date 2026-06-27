@@ -1,7 +1,8 @@
 import { useState, memo } from 'react';
 import GroqTestPanel from './GroqTestPanel';
 
-const BACKEND_BASE = `http://${window.location.hostname}:3001`;
+const BACKEND_BASE = (import.meta.env.VITE_API_URL || `http://${window.location.hostname}:3001`).replace(/\/api$/, '');
+
 
 function getScoreClass(score) {
   if (score >= 80) return 'excellent';
