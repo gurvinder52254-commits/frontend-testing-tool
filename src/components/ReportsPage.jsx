@@ -1,10 +1,13 @@
 import { useState, useEffect } from 'react';
+import { useAuth } from '../context/AuthContext';
 
 const baseApiUrl = import.meta.env.VITE_API_URL || `http://${window.location.hostname}:3001`;
 const API_URL = baseApiUrl.endsWith('/api') ? baseApiUrl : `${baseApiUrl}/api`;
 
 
+
 function ReportsPage({ onSelectProject }) {
+  const { authHeaders } = useAuth();
   const [reports, setReports] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
@@ -16,7 +19,7 @@ function ReportsPage({ onSelectProject }) {
   const fetchReports = async () => {
     try {
       setLoading(true);
-      const res = await fetch(`${API_URL}/reports`);
+      const res = await fetch(`${API_URL}/reports`, { headers: authHeaders });
       const data = await res.json();
       if (data.success) {
         // Sort by date, newest first
