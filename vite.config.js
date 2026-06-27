@@ -4,8 +4,9 @@ import react from '@vitejs/plugin-react';
 export default defineConfig({
   plugins: [react()],
   server: {
-    host: '0.0.0.0',  // Render ke liye 0.0.0.0 bind karna zaroori hai
+    host: '0.0.0.0',
     port: 5173,
+    allowedHosts: 'all',
     proxy: {
       '/api': {
         target: 'http://localhost:3001',
@@ -14,7 +15,8 @@ export default defineConfig({
     },
   },
   preview: {
-    host: '0.0.0.0',  // npm run preview ke liye bhi 0.0.0.0
+    host: '0.0.0.0',
     port: 5173,
+    allowedHosts: 'all',
   },
 });
