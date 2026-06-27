@@ -1,6 +1,9 @@
 import React from 'react';
+import { useAuth } from '../context/AuthContext';
 
 const Header = ({ status, wsConnected, activeView, onNavigate }) => {
+  const { user, logout } = useAuth();
+
   return (
     <header className="header">
       <div className="header__brand" onClick={() => onNavigate && onNavigate('dashboard')} style={{ cursor: 'pointer' }}>
@@ -47,6 +50,7 @@ const Header = ({ status, wsConnected, activeView, onNavigate }) => {
           </svg>
           <span className="header__search-text">Search...</span>
         </div>
+
         <div className="header__status">
           <span
             className={`header__status-dot ${status === 'testing' ? 'header__status-dot--testing' : !wsConnected ? 'header__status-dot--error' : ''}`}
@@ -55,6 +59,26 @@ const Header = ({ status, wsConnected, activeView, onNavigate }) => {
             {status === 'testing' ? 'SCANNING...' : wsConnected ? 'ONLINE' : 'OFFLINE'}
           </span>
         </div>
+
+        {/* User Avatar + Logout */}
+        {user && (
+          <div className="header__user">
+            <img
+              className="header__user-avatar"
+              src={user.picture}
+              alt={user.name}
+              title={`${user.name} (${user.email})`}
+            />
+            <span className="header__user-name">{user.name.split(' ')[0]}</span>
+            <button className="header__logout-btn" onClick={logout} title="Logout">
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                <path d="M9 21H5a2 2 0 01-2-2V5a2 2 0 012-2h4" />
+                <polyline points="16 17 21 12 16 7" />
+                <line x1="21" y1="12" x2="9" y2="12" />
+              </svg>
+            </button>
+          </div>
+        )}
       </div>
     </header>
   );

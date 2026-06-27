@@ -5,8 +5,10 @@ import PageCard from './components/PageCard';
 import FinalReport from './components/FinalReport';
 import ReportsPage from './components/ReportsPage';
 import Header from './components/Header';
+import LoginPage from './components/LoginPage';
 import Test from './test';
 import DynamicForm from './components/DynamicForm';
+import { useAuth } from './context/AuthContext';
 
 const baseApiUrl = import.meta.env.VITE_API_URL || `http://${window.location.hostname}:3001`;
 const API_URL = baseApiUrl.endsWith('/api') ? baseApiUrl : `${baseApiUrl}/api`;
@@ -17,6 +19,7 @@ const WS_URL = baseApiUrl.replace(/\/api$/, '').replace(/^http/, 'ws') + '/ws';
 const MemoizedDashboard = memo(TestingDashboard);
 
 function App() {
+  const { isLoggedIn, authHeaders, user, logout } = useAuth();
   const [status, setStatus] = useState('idle'); // idle | connecting | testing | complete | error
   const [activeView, setActiveView] = useState('dashboard'); // dashboard | reports | project-detail
   const [selectedReport, setSelectedReport] = useState(null);
@@ -238,7 +241,7 @@ function App() {
     try {
       const res = await fetch(`${API_URL}/start-test`, {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        headers: authHeaders,
         body: JSON.stringify({ frontendUrl: fUrl, backendUrl: bUrl || undefined, scanType, userDetails }),
       });
       const data = await res.json();
@@ -290,7 +293,9 @@ function App() {
   const handleSelectProject = useCallback(async (testId) => {
     try {
       setLoadingReport(true);
-      const res = await fetch(`${API_URL}/reports/${testId}`);
+      const res = await fetch(`${API_URL}/reports/${testId}`, {
+        headers: authHeaders,
+      });
       const data = await res.json();
       if (data.success && data.report) {
         setSelectedReport(data.report);
@@ -325,6 +330,11 @@ function App() {
       </section>
     );
   }, [completedPages, totalPages, handleScreenshotClick]);
+
+  // Show Login page if not authenticated
+  if (!isLoggedIn) {
+    return <LoginPage />;
+  }
 
   if (isTestPage) {
     return <Test />;
