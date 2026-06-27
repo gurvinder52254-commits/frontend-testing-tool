@@ -49,22 +49,6 @@ const Header = ({ status, wsConnected, activeView, onNavigate }) => {
       </nav>
 
       <div className="header__right">
-        <div className="header__search">
-          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-            <circle cx="11" cy="11" r="8" />
-            <line x1="21" y1="21" x2="16.65" y2="16.65" />
-          </svg>
-          <span className="header__search-text">Search...</span>
-        </div>
-
-        <div className="header__status">
-          <span
-            className={`header__status-dot ${status === 'testing' ? 'header__status-dot--testing' : !wsConnected ? 'header__status-dot--error' : ''}`}
-          />
-          <span className="header__status-text">
-            {status === 'testing' ? 'SCANNING...' : wsConnected ? 'ONLINE' : 'OFFLINE'}
-          </span>
-        </div>
 
         {/* User Avatar + Logout (Desktop) */}
         {user && (
@@ -117,22 +101,6 @@ const Header = ({ status, wsConnected, activeView, onNavigate }) => {
         </nav>
 
         <div className="header__mobile-widgets">
-          <div className="header__search header__search--mobile">
-            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-              <circle cx="11" cy="11" r="8" />
-              <line x1="21" y1="21" x2="16.65" y2="16.65" />
-            </svg>
-            <span className="header__search-text">Search...</span>
-          </div>
-
-          <div className="header__status header__status--mobile">
-            <span
-              className={`header__status-dot ${status === 'testing' ? 'header__status-dot--testing' : !wsConnected ? 'header__status-dot--error' : ''}`}
-            />
-            <span className="header__status-text">
-              {status === 'testing' ? 'SCANNING...' : wsConnected ? 'ONLINE' : 'OFFLINE'}
-            </span>
-          </div>
 
           {user && (
             <div className="header__user header__user--mobile">
