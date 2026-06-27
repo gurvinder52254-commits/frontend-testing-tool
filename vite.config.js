@@ -4,17 +4,17 @@ import react from '@vitejs/plugin-react';
 export default defineConfig({
   plugins: [react()],
   server: {
-    host: '0.0.0.0',                            // Render ke liye zaroori: 0.0.0.0 par bind karo
-    port: parseInt(process.env.PORT) || 5173,   // Render ka PORT env variable use karo
+    host: '0.0.0.0',  // Render ke liye 0.0.0.0 bind karna zaroori hai
+    port: 5173,
     proxy: {
       '/api': {
-        target: process.env.VITE_API_URL || 'http://localhost:3001',
+        target: 'http://localhost:3001',
         changeOrigin: true,
       },
     },
   },
   preview: {
-    host: '0.0.0.0',                            // 'npm run preview' ke liye bhi 0.0.0.0
-    port: parseInt(process.env.PORT) || 4173,
+    host: '0.0.0.0',  // npm run preview ke liye bhi 0.0.0.0
+    port: 5173,
   },
 });
