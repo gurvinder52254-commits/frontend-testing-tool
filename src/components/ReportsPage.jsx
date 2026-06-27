@@ -1,6 +1,8 @@
 import { useState, useEffect } from 'react';
 
-const API_URL = `http://${window.location.hostname}:3001/api`;
+const baseApiUrl = import.meta.env.VITE_API_URL || `http://${window.location.hostname}:3001`;
+const API_URL = baseApiUrl.endsWith('/api') ? baseApiUrl : `${baseApiUrl}/api`;
+
 
 function ReportsPage({ onSelectProject }) {
   const [reports, setReports] = useState([]);

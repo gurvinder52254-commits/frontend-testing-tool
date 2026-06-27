@@ -8,8 +8,10 @@ import Header from './components/Header';
 import Test from './test';
 import DynamicForm from './components/DynamicForm';
 
-const WS_URL = `ws://${window.location.hostname}:3001/ws`;
-const API_URL = `http://${window.location.hostname}:3001/api`;
+const baseApiUrl = import.meta.env.VITE_API_URL || `http://${window.location.hostname}:3001`;
+const API_URL = baseApiUrl.endsWith('/api') ? baseApiUrl : `${baseApiUrl}/api`;
+const WS_URL = baseApiUrl.replace(/\/api$/, '').replace(/^http/, 'ws') + '/ws';
+
 
 // Memoized Dashboard to prevent unnecessary re-renders
 const MemoizedDashboard = memo(TestingDashboard);
