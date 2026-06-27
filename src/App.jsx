@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef, useCallback, memo, useMemo } from 'react';
+import { useState, useEffect, useRef, useCallback, memo, useMemo, useReducer } from 'react';
 import TestForm from './components/TestForm';
 import TestingDashboard from './components/TestingDashboard';
 import PageCard from './components/PageCard';
@@ -14,6 +14,49 @@ const baseApiUrl = import.meta.env.VITE_API_URL || `http://${window.location.hos
 const API_URL = baseApiUrl.endsWith('/api') ? baseApiUrl : `${baseApiUrl}/api`;
 const WS_URL = baseApiUrl.replace(/\/api$/, '').replace(/^http/, 'ws') + '/ws';
 
+
+// ─── Reducer for batching WS-driven state updates ───────────────────────────
+const testingReducer = (state, action) => {
+  switch (action.type) {
+    case 'RESET':
+      return {
+        progress: 0, totalPages: 0, pagesCompleted: 0,
+        statusLogs: [], liveUrl: '', completedPages: [], finalReport: null,
+      };
+    case 'ADD_LOG': {
+      const newLogs = [...state.statusLogs, action.payload];
+      return { ...state, statusLogs: newLogs.length > 150 ? newLogs.slice(-100) : newLogs };
+    }
+    case 'LINKS_DISCOVERED':
+      return { ...state, totalPages: action.totalPages };
+    case 'PAGE_START':
+      return { ...state, progress: action.progress, liveUrl: action.url };
+    case 'PAGE_COMPLETE': {
+      const existing = state.completedPages.findIndex(
+        (p) => p.url === action.result.url || p.pageIndex === action.pageIndex
+      );
+      let pages;
+      if (existing >= 0) {
+        pages = [...state.completedPages];
+        pages[existing] = { ...pages[existing], ...action.result, pageIndex: action.pageIndex };
+      } else {
+        pages = [...state.completedPages, { ...action.result, pageIndex: action.pageIndex }];
+      }
+      return { ...state, progress: action.progress, pagesCompleted: state.pagesCompleted + 1, completedPages: pages };
+    }
+    case 'TEST_COMPLETE':
+      return { ...state, progress: 100, finalReport: action.report };
+    case 'SET_LIVE_URL':
+      return { ...state, liveUrl: action.url };
+    default:
+      return state;
+  }
+};
+
+const initialTestingState = {
+  progress: 0, totalPages: 0, pagesCompleted: 0,
+  statusLogs: [], liveUrl: '', completedPages: [], finalReport: null,
+};
 
 // Memoized Dashboard to prevent unnecessary re-renders
 const MemoizedDashboard = memo(TestingDashboard);
@@ -32,24 +75,28 @@ function App() {
   const [wsConnected, setWsConnected] = useState(false);
   const [testId, setTestId] = useState(null);
   const [frontendUrl, setFrontendUrl] = useState('');
-  const [progress, setProgress] = useState(0);
-  const [totalPages, setTotalPages] = useState(0);
-  const [pagesCompleted, setPagesCompleted] = useState(0);
-  const [statusLogs, setStatusLogs] = useState([]);
-  const [liveScreenshot, setLiveScreenshot] = useState(null);
-  const [liveUrl, setLiveUrl] = useState('');
-  const [completedPages, setCompletedPages] = useState([]);
-  const [finalReport, setFinalReport] = useState(null);
   const [modalImage, setModalImage] = useState(null);
+
+  // Batch all fast-updating testing state into a reducer to avoid cascading re-renders
+  const [testingState, dispatch] = useReducer(testingReducer, initialTestingState);
+  const { progress, totalPages, pagesCompleted, statusLogs, liveUrl, completedPages, finalReport } = testingState;
+
+  // Store live screenshot in ref — update it directly without triggering React re-render tree
+  // TestingDashboard reads it via its own polling interval
+  const liveScreenshotRef = useRef(null);
+  const [screenshotTick, setScreenshotTick] = useState(0); // lightweight tick to tell Dashboard a new screenshot arrived
+
   const wsRef = useRef(null);
   const logsEndRef = useRef(null);
+  const logIdCounter = useRef(0); // stable IDs for log items — never use index as key
 
-  // Auto-scroll logs
+  // Auto-scroll logs using RAF to prevent layout thrash
   useEffect(() => {
-    if (logsEndRef.current) {
-      logsEndRef.current.scrollIntoView({ behavior: 'smooth' });
-    }
-  }, [statusLogs]);
+    const raf = requestAnimationFrame(() => {
+      logsEndRef.current?.scrollIntoView({ behavior: 'smooth', block: 'end' });
+    });
+    return () => cancelAnimationFrame(raf);
+  }, [statusLogs.length]);
 
   // Connect WebSocket on mount
   useEffect(() => {
@@ -95,10 +142,8 @@ function App() {
 
   const addLog = useCallback((message, type = 'info') => {
     const time = new Date().toLocaleTimeString('en-IN', { hour12: false });
-    setStatusLogs((prev) => {
-      const newLogs = [...prev, { message, type, time }];
-      return newLogs.slice(-100);
-    });
+    const id = ++logIdCounter.current;
+    dispatch({ type: 'ADD_LOG', payload: { id, message, type, time } });
   }, []);
 
   const testIdRef = useRef(null);
@@ -119,7 +164,7 @@ function App() {
         break;
 
       case 'links-discovered':
-        setTotalPages(data.totalPages);
+        dispatch({ type: 'LINKS_DISCOVERED', totalPages: data.totalPages });
         addLog(
           `Discovered ${data.totalPages} pages (${data.headerLinks} header, ${data.footerLinks} footer)`,
           'success'
@@ -127,14 +172,15 @@ function App() {
         break;
 
       case 'page-start':
-        setProgress(data.progress || 0);
-        setLiveUrl(data.url);
+        dispatch({ type: 'PAGE_START', progress: data.progress || 0, url: data.url });
         addLog(`Testing page ${data.pageIndex + 1}/${data.totalPages}: ${data.text || data.url}`, 'info');
         break;
 
       case 'live-screenshot':
-        setLiveScreenshot(`data:image/png;base64,${data.image}`);
-        setLiveUrl(data.url);
+        // Store in ref to avoid cascading re-renders — only send a tick signal
+        liveScreenshotRef.current = `data:image/png;base64,${data.image}`;
+        dispatch({ type: 'SET_LIVE_URL', url: data.url });
+        setScreenshotTick((t) => t + 1);
         break;
 
       case 'screenshot-taken':
@@ -150,16 +196,11 @@ function App() {
         break;
 
       case 'page-complete':
-        setPagesCompleted((prev) => prev + 1);
-        setProgress(data.progress || 0);
-        setCompletedPages((prev) => {
-          const existing = prev.findIndex((p) => p.url === data.result.url || p.pageIndex === data.pageIndex);
-          if (existing >= 0) {
-            const updated = [...prev];
-            updated[existing] = { ...updated[existing], ...data.result, pageIndex: data.pageIndex };
-            return updated;
-          }
-          return [...prev, { ...data.result, pageIndex: data.pageIndex }];
+        dispatch({
+          type: 'PAGE_COMPLETE',
+          pageIndex: data.pageIndex,
+          result: data.result,
+          progress: data.progress || 0,
         });
         break;
 
@@ -169,8 +210,7 @@ function App() {
 
       case 'test-complete':
         setStatus('complete');
-        setProgress(100);
-        setFinalReport(data.report);
+        dispatch({ type: 'TEST_COMPLETE', report: data.report });
         addLog('🎉 Testing complete!', 'success');
         break;
 
@@ -226,14 +266,9 @@ function App() {
 
     setStatus('testing');
     setFrontendUrl(fUrl);
-    setProgress(0);
-    setTotalPages(0);
-    setPagesCompleted(0);
-    setStatusLogs([]);
-    setLiveScreenshot(null);
-    setLiveUrl('');
-    setCompletedPages([]);
-    setFinalReport(null);
+    dispatch({ type: 'RESET' });
+    liveScreenshotRef.current = null;
+    setScreenshotTick(0);
     testIdRef.current = null;
 
     addLog(`Starting test for: ${fUrl}`, 'info');
@@ -264,14 +299,9 @@ function App() {
     setActiveView('dashboard');
     setSelectedReport(null);
     setTestId(null);
-    setProgress(0);
-    setTotalPages(0);
-    setPagesCompleted(0);
-    setStatusLogs([]);
-    setLiveScreenshot(null);
-    setLiveUrl('');
-    setCompletedPages([]);
-    setFinalReport(null);
+    liveScreenshotRef.current = null;
+    setScreenshotTick(0);
+    dispatch({ type: 'RESET' });
   }, []);
 
   const handleScreenshotClick = useCallback((url) => {
@@ -666,7 +696,8 @@ function App() {
           totalPages={totalPages}
           pagesCompleted={pagesCompleted}
           statusLogs={statusLogs}
-          liveScreenshot={liveScreenshot}
+          liveScreenshotRef={liveScreenshotRef}
+          screenshotTick={screenshotTick}
           liveUrl={liveUrl}
           logsEndRef={logsEndRef}
         />
