@@ -902,6 +902,7 @@ body::before {
 
 .nodes-section__header {
   margin-bottom: 32px;
+  text-align: center;
 }
 
 .nodes-section__title {
