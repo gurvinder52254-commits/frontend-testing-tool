@@ -18,5 +18,6 @@ export default defineConfig({
     host: '0.0.0.0',
     port: 5173,
     allowedHosts: 'all',
+    // Allow all Render.com subdomains including frontend-testing-tool.onrender.com
   },
 });
