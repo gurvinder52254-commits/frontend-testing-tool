@@ -399,11 +399,6 @@ function App() {
         <div className="hero-section">
           {/* Hero Content */}
           <section className="hero">
-            <div className="hero__badge">
-              <span className="hero__badge-dot"></span>
-              <span className="hero__badge-text">System Status: Active</span>
-            </div>
-
             <h1 className="hero__title">
               AI-Powered Testing<br />
               <span className="hero__title-gradient">for Your Websites.</span>
@@ -417,12 +412,10 @@ function App() {
                 <span className="hero__stat-value">50+</span>
                 <span className="hero__stat-label">Test Checks</span>
               </div>
-              <div className="hero__stat-divider"></div>
               <div className="hero__stat">
                 <span className="hero__stat-value">AI</span>
                 <span className="hero__stat-label">Analysis</span>
               </div>
-              <div className="hero__stat-divider"></div>
               <div className="hero__stat">
                 <span className="hero__stat-value">∞</span>
                 <span className="hero__stat-label">Pages</span>
