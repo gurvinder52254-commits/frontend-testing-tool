@@ -1,26 +1,33 @@
 import { useGoogleLogin } from '@react-oauth/google';
 import { useAuth } from '../context/AuthContext';
 
+const baseApiUrl = import.meta.env.VITE_API_URL || `http://${window.location.hostname}:3001`;
+const API_URL = baseApiUrl.endsWith('/api') ? baseApiUrl : `${baseApiUrl}/api`;
+
 export default function LoginPage() {
   const { login } = useAuth();
 
   const handleGoogleLogin = useGoogleLogin({
     onSuccess: async (tokenResponse) => {
-      // Fetch user profile from Google
       try {
-        const res = await fetch('https://www.googleapis.com/oauth2/v3/userinfo', {
-          headers: { Authorization: `Bearer ${tokenResponse.access_token}` },
+        // Verify token with backend, which will upsert the user into the database
+        const res = await fetch(`${API_URL}/login`, {
+          method: 'POST',
+          headers: {
+            'Authorization': `Bearer ${tokenResponse.access_token}`,
+            'Content-Type': 'application/json'
+          }
         });
-        const userInfo = await res.json();
-        // Store access token + user info
-        login(tokenResponse.access_token, {
-          id: userInfo.sub,
-          name: userInfo.name,
-          email: userInfo.email,
-          picture: userInfo.picture,
-        });
+        const data = await res.json();
+        
+        if (data.success && data.user) {
+          // Store access token + backend-saved user info
+          login(tokenResponse.access_token, data.user);
+        } else {
+          console.error('Backend authentication failed:', data.error);
+        }
       } catch (err) {
-        console.error('Failed to fetch user info:', err);
+        console.error('Failed to log in with backend:', err);
       }
     },
     onError: (err) => console.error('Google Login Error:', err),
