@@ -24,6 +24,15 @@ const testingReducer = (state, action) => {
         progress: 0, totalPages: 0, pagesCompleted: 0,
         statusLogs: [], liveUrl: '', completedPages: [], finalReport: null,
       };
+    case 'RESTORE_TEST_STATE':
+      return {
+        ...state,
+        progress: action.report.status === 'complete' ? 100 : Math.round(((action.report.pagesCompleted || 0) / (action.report.totalPages || 1)) * 100),
+        totalPages: action.report.totalPages || 0,
+        pagesCompleted: action.report.pagesCompleted || 0,
+        completedPages: action.report.pages || [],
+        finalReport: action.report.status === 'complete' ? action.report : null,
+      };
     case 'ADD_LOG': {
       const newLogs = [...state.statusLogs, action.payload];
       return { ...state, statusLogs: newLogs.length > 150 ? newLogs.slice(-100) : newLogs };
@@ -109,6 +118,51 @@ function App() {
       }
     };
   }, []);
+
+  // Handle Hash Routing and state restoration on mount/refresh/hashchange
+  useEffect(() => {
+    const handleHashChange = async () => {
+      const hash = window.location.hash;
+      
+      if (!isLoggedIn) return; // wait for login to fetch auth-protected state
+
+      if (hash.startsWith('#/report/')) {
+        const id = hash.substring('#/report/'.length);
+        setSelectedTestId(id);
+        setActiveView('project-detail');
+      } else if (hash.startsWith('#/test/')) {
+        const id = hash.substring('#/test/'.length);
+        // Connect WS and fetch progress if test is active/recent
+        testIdRef.current = id;
+        setTestId(id);
+        setActiveView('dashboard');
+        
+        try {
+          const res = await fetch(`${API_URL}/test/${id}`, { headers: authHeaders });
+          if (res.ok) {
+            const data = await res.json();
+            if (data.success && data.report) {
+              setStatus(data.status === 'running' ? 'testing' : (data.status === 'complete' ? 'complete' : 'idle'));
+              setFrontendUrl(data.report.frontendUrl || '');
+              dispatch({ type: 'RESTORE_TEST_STATE', report: data.report });
+            }
+          }
+        } catch (e) {
+          console.error('Failed to restore running test:', e);
+        }
+      } else if (hash === '#/reports') {
+        setSelectedTestId(null);
+        setActiveView('reports');
+      } else {
+        setSelectedTestId(null);
+        setActiveView('dashboard');
+      }
+    };
+
+    handleHashChange();
+    window.addEventListener('hashchange', handleHashChange);
+    return () => window.removeEventListener('hashchange', handleHashChange);
+  }, [isLoggedIn, authHeaders]);
 
   const connectWebSocket = useCallback(() => {
     if (wsRef.current && (wsRef.current.readyState === WebSocket.OPEN || wsRef.current.readyState === WebSocket.CONNECTING)) return;
@@ -286,6 +340,7 @@ function App() {
       if (data.success) {
         setTestId(data.testId);
         testIdRef.current = data.testId;
+        window.location.hash = `/test/${data.testId}`;
       } else {
         setStatus('error');
         addLog(`Failed to start test: ${data.error}`, 'error');
@@ -299,11 +354,13 @@ function App() {
   const handleNewTest = useCallback(() => {
     setStatus('idle');
     setActiveView('dashboard');
-    setSelectedReport(null);
+    setSelectedTestId(null);
     setTestId(null);
+    testIdRef.current = null;
     liveScreenshotRef.current = null;
     setScreenshotTick(0);
     dispatch({ type: 'RESET' });
+    window.location.hash = '';
   }, []);
 
   const handleScreenshotClick = useCallback((url) => {
@@ -315,9 +372,11 @@ function App() {
     if (view === 'dashboard') {
       setActiveView('dashboard');
       setSelectedTestId(null);
+      window.location.hash = '';
     } else if (view === 'reports') {
       setActiveView('reports');
       setSelectedTestId(null);
+      window.location.hash = '/reports';
     }
   }, []);
 
@@ -348,6 +407,7 @@ function App() {
   const handleSelectProject = useCallback((testId) => {
     setSelectedTestId(testId);
     setActiveView('project-detail');
+    window.location.hash = `/report/${testId}`;
   }, []);
 
   // Live test results grid — virtualized via VirtualPageGrid
