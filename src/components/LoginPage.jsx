@@ -1,3 +1,4 @@
+import { useState, useEffect } from 'react';
 import { useGoogleLogin } from '@react-oauth/google';
 import { useAuth } from '../context/AuthContext';
 
@@ -6,6 +7,15 @@ const API_URL = baseApiUrl.endsWith('/api') ? baseApiUrl : `${baseApiUrl}/api`;
 
 export default function LoginPage() {
   const { login } = useAuth();
+  const [errorMessage, setErrorMessage] = useState(null);
+
+  useEffect(() => {
+    const err = sessionStorage.getItem('login_error');
+    if (err) {
+      setErrorMessage(err);
+      sessionStorage.removeItem('login_error'); // Clear immediately so it does not persist on subsequent reloads
+    }
+  }, []);
 
   const handleGoogleLogin = useGoogleLogin({
     onSuccess: async (tokenResponse) => {
@@ -21,21 +31,42 @@ export default function LoginPage() {
         const data = await res.json();
         
         if (data.success && data.user) {
-          // Store access token + backend-saved user info
-          login(tokenResponse.access_token, data.user);
+          // Store backend-issued 7-day session token, with fallback to Google access token
+          login(data.token || tokenResponse.access_token, data.user);
         } else {
           console.error('Backend authentication failed:', data.error);
+          setErrorMessage(data.error || 'Authentication failed. Please try again.');
         }
       } catch (err) {
         console.error('Failed to log in with backend:', err);
+        setErrorMessage('Failed to connect to authentication server.');
       }
     },
-    onError: (err) => console.error('Google Login Error:', err),
+    onError: (err) => {
+      console.error('Google Login Error:', err);
+      setErrorMessage('Google Login was unsuccessful or canceled.');
+    },
   });
 
   return (
     <div className="login-page">
       <div className="login-card">
+        {/* Error Banner */}
+        {errorMessage && (
+          <div className="login-error-banner" style={{
+            background: 'rgba(239, 68, 68, 0.12)',
+            border: '1px solid rgba(239, 68, 68, 0.35)',
+            borderRadius: '8px',
+            color: '#ef4444',
+            padding: '12px',
+            fontSize: '0.82rem',
+            textAlign: 'center',
+            marginBottom: '20px',
+            fontWeight: 500
+          }}>
+            ⚠️ {errorMessage}
+          </div>
+        )}
         {/* Logo & Brand */}
         <div className="login-brand">
           <div className="login-logo">

@@ -1,7 +1,8 @@
 import { useState, useEffect, useRef, useCallback, memo, useMemo, useReducer } from 'react';
+import { useQuery } from '@tanstack/react-query';
 import TestForm from './components/TestForm';
 import TestingDashboard from './components/TestingDashboard';
-import PageCard from './components/PageCard';
+import VirtualPageGrid from './components/VirtualPageGrid';
 import FinalReport from './components/FinalReport';
 import ReportsPage from './components/ReportsPage';
 import Header from './components/Header';
@@ -65,8 +66,7 @@ function App() {
   const { isLoggedIn, authHeaders, user, logout } = useAuth();
   const [status, setStatus] = useState('idle'); // idle | connecting | testing | complete | error
   const [activeView, setActiveView] = useState('dashboard'); // dashboard | reports | project-detail
-  const [selectedReport, setSelectedReport] = useState(null);
-  const [loadingReport, setLoadingReport] = useState(false);
+  const [loadingReport, setLoadingReport] = useState(false); // kept for legacy fallback only
   const isTestPage = window.location.pathname === '/test';
 
   const [testConfig, setTestConfig] = useState(null);
@@ -76,6 +76,8 @@ function App() {
   const [testId, setTestId] = useState(null);
   const [frontendUrl, setFrontendUrl] = useState('');
   const [modalImage, setModalImage] = useState(null);
+  // ID of the report selected from the Reports page — drives the useQuery below
+  const [selectedTestId, setSelectedTestId] = useState(null);
 
   // Batch all fast-updating testing state into a reducer to avoid cascading re-renders
   const [testingState, dispatch] = useReducer(testingReducer, initialTestingState);
@@ -312,52 +314,51 @@ function App() {
   const handleNavigate = useCallback((view) => {
     if (view === 'dashboard') {
       setActiveView('dashboard');
-      setSelectedReport(null);
+      setSelectedTestId(null);
     } else if (view === 'reports') {
       setActiveView('reports');
-      setSelectedReport(null);
+      setSelectedTestId(null);
     }
   }, []);
+
+  // ── TanStack Query: load report detail with automatic caching ──────────────
+  // The same report is never fetched twice within the staleTime window.
+  const {
+    data: selectedReportData,
+    isLoading: isLoadingReport,
+    error: reportError,
+  } = useQuery({
+    queryKey: ['report', selectedTestId],
+    queryFn: async () => {
+      if (!selectedTestId) return null;
+      const res = await fetch(`${API_URL}/reports/${selectedTestId}`, { headers: authHeaders });
+      if (!res.ok) throw new Error(`HTTP ${res.status}`);
+      const data = await res.json();
+      if (!data.success) throw new Error(data.error || 'Failed to load report');
+      return data.report;
+    },
+    enabled: !!selectedTestId,  // only fetch when a report is actually selected
+    staleTime: 10 * 60 * 1000, // cache individual report for 10 min
+  });
+
+  // Derive selectedReport from query data (mirrors old selectedReport state)
+  const selectedReport = selectedTestId ? selectedReportData ?? null : null;
 
   // Select a project from reports to view its dashboard
-  const handleSelectProject = useCallback(async (testId) => {
-    try {
-      setLoadingReport(true);
-      const res = await fetch(`${API_URL}/reports/${testId}`, {
-        headers: authHeaders,
-      });
-      const data = await res.json();
-      if (data.success && data.report) {
-        setSelectedReport(data.report);
-        setActiveView('project-detail');
-      } else {
-        console.error('Failed to load report:', data.error);
-      }
-    } catch (err) {
-      console.error('Error loading report:', err);
-    } finally {
-      setLoadingReport(false);
-    }
+  const handleSelectProject = useCallback((testId) => {
+    setSelectedTestId(testId);
+    setActiveView('project-detail');
   }, []);
 
-  // Memoize results grid
+  // Live test results grid — virtualized via VirtualPageGrid
   const resultsGrid = useMemo(() => {
     if (completedPages.length === 0) return null;
     return (
-      <section className="results">
-        <h2 className="results__title">
-          📄 Tested Pages ({completedPages.length}/{totalPages || '?'})
-        </h2>
-        <div className="results__grid">
-          {completedPages.map((page, idx) => (
-            <PageCard
-              key={page.url || idx}
-              page={page}
-              onScreenshotClick={handleScreenshotClick}
-            />
-          ))}
-        </div>
-      </section>
+      <VirtualPageGrid
+        pages={completedPages}
+        onScreenshotClick={handleScreenshotClick}
+        title={`Tested Pages (${completedPages.length}/${totalPages || '?'})`}
+      />
     );
   }, [completedPages, totalPages, handleScreenshotClick]);
 
@@ -387,14 +388,14 @@ function App() {
       )}
 
       {/* === PROJECT DETAIL VIEW (from reports) === */}
-      {activeView === 'project-detail' && loadingReport && (
+      {activeView === 'project-detail' && isLoadingReport && (
         <div className="reports-page__loading" style={{ marginTop: '80px' }}>
           <div className="reports-page__spinner"></div>
           <span>Loading project report...</span>
         </div>
       )}
 
-      {activeView === 'project-detail' && !loadingReport && selectedReport && (
+      {activeView === 'project-detail' && !isLoadingReport && selectedReport && (
         <div>
           <button className="reports-back-btn" onClick={() => handleNavigate('reports')}>
             <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
@@ -404,20 +405,11 @@ function App() {
           </button>
 
           {selectedReport.pages && selectedReport.pages.length > 0 && (
-            <section className="results">
-              <h2 className="results__title">
-                📄 Tested Pages [{selectedReport.pages.length}]
-              </h2>
-              <div className="results__grid">
-                {selectedReport.pages.map((page, idx) => (
-                  <PageCard
-                    key={page.url || idx}
-                    page={page}
-                    onScreenshotClick={handleScreenshotClick}
-                  />
-                ))}
-              </div>
-            </section>
+            <VirtualPageGrid
+              pages={selectedReport.pages}
+              onScreenshotClick={handleScreenshotClick}
+              title={`Tested Pages [${selectedReport.pages.length}]`}
+            />
           )}
 
           <FinalReport report={selectedReport} onNewTest={() => handleNavigate('reports')} />
