@@ -1,7 +1,8 @@
-import { useState, useEffect, useRef, useCallback, memo, useMemo } from 'react';
+import { useState, useEffect, useRef, useCallback, memo, useMemo, useReducer } from 'react';
+import { useQuery } from '@tanstack/react-query';
 import TestForm from './components/TestForm';
 import TestingDashboard from './components/TestingDashboard';
-import PageCard from './components/PageCard';
+import VirtualPageGrid from './components/VirtualPageGrid';
 import FinalReport from './components/FinalReport';
 import ReportsPage from './components/ReportsPage';
 import Header from './components/Header';
@@ -15,6 +16,58 @@ const API_URL = baseApiUrl.endsWith('/api') ? baseApiUrl : `${baseApiUrl}/api`;
 const WS_URL = baseApiUrl.replace(/\/api$/, '').replace(/^http/, 'ws') + '/ws';
 
 
+// ─── Reducer for batching WS-driven state updates ───────────────────────────
+const testingReducer = (state, action) => {
+  switch (action.type) {
+    case 'RESET':
+      return {
+        progress: 0, totalPages: 0, pagesCompleted: 0,
+        statusLogs: [], liveUrl: '', completedPages: [], finalReport: null,
+      };
+    case 'RESTORE_TEST_STATE':
+      return {
+        ...state,
+        progress: action.report.status === 'complete' ? 100 : Math.round(((action.report.pagesCompleted || 0) / (action.report.totalPages || 1)) * 100),
+        totalPages: action.report.totalPages || 0,
+        pagesCompleted: action.report.pagesCompleted || 0,
+        completedPages: action.report.pages || [],
+        finalReport: action.report.status === 'complete' ? action.report : null,
+      };
+    case 'ADD_LOG': {
+      const newLogs = [...state.statusLogs, action.payload];
+      return { ...state, statusLogs: newLogs.length > 150 ? newLogs.slice(-100) : newLogs };
+    }
+    case 'LINKS_DISCOVERED':
+      return { ...state, totalPages: action.totalPages };
+    case 'PAGE_START':
+      return { ...state, progress: action.progress, liveUrl: action.url };
+    case 'PAGE_COMPLETE': {
+      const existing = state.completedPages.findIndex(
+        (p) => p.url === action.result.url || p.pageIndex === action.pageIndex
+      );
+      let pages;
+      if (existing >= 0) {
+        pages = [...state.completedPages];
+        pages[existing] = { ...pages[existing], ...action.result, pageIndex: action.pageIndex };
+      } else {
+        pages = [...state.completedPages, { ...action.result, pageIndex: action.pageIndex }];
+      }
+      return { ...state, progress: action.progress, pagesCompleted: state.pagesCompleted + 1, completedPages: pages };
+    }
+    case 'TEST_COMPLETE':
+      return { ...state, progress: 100, finalReport: action.report };
+    case 'SET_LIVE_URL':
+      return { ...state, liveUrl: action.url };
+    default:
+      return state;
+  }
+};
+
+const initialTestingState = {
+  progress: 0, totalPages: 0, pagesCompleted: 0,
+  statusLogs: [], liveUrl: '', completedPages: [], finalReport: null,
+};
+
 // Memoized Dashboard to prevent unnecessary re-renders
 const MemoizedDashboard = memo(TestingDashboard);
 
@@ -22,8 +75,7 @@ function App() {
   const { isLoggedIn, authHeaders, user, logout } = useAuth();
   const [status, setStatus] = useState('idle'); // idle | connecting | testing | complete | error
   const [activeView, setActiveView] = useState('dashboard'); // dashboard | reports | project-detail
-  const [selectedReport, setSelectedReport] = useState(null);
-  const [loadingReport, setLoadingReport] = useState(false);
+  const [loadingReport, setLoadingReport] = useState(false); // kept for legacy fallback only
   const isTestPage = window.location.pathname === '/test';
 
   const [testConfig, setTestConfig] = useState(null);
@@ -32,24 +84,30 @@ function App() {
   const [wsConnected, setWsConnected] = useState(false);
   const [testId, setTestId] = useState(null);
   const [frontendUrl, setFrontendUrl] = useState('');
-  const [progress, setProgress] = useState(0);
-  const [totalPages, setTotalPages] = useState(0);
-  const [pagesCompleted, setPagesCompleted] = useState(0);
-  const [statusLogs, setStatusLogs] = useState([]);
-  const [liveScreenshot, setLiveScreenshot] = useState(null);
-  const [liveUrl, setLiveUrl] = useState('');
-  const [completedPages, setCompletedPages] = useState([]);
-  const [finalReport, setFinalReport] = useState(null);
   const [modalImage, setModalImage] = useState(null);
+  // ID of the report selected from the Reports page — drives the useQuery below
+  const [selectedTestId, setSelectedTestId] = useState(null);
+
+  // Batch all fast-updating testing state into a reducer to avoid cascading re-renders
+  const [testingState, dispatch] = useReducer(testingReducer, initialTestingState);
+  const { progress, totalPages, pagesCompleted, statusLogs, liveUrl, completedPages, finalReport } = testingState;
+
+  // Store live screenshot in ref — update it directly without triggering React re-render tree
+  // TestingDashboard reads it via its own polling interval
+  const liveScreenshotRef = useRef(null);
+  const [screenshotTick, setScreenshotTick] = useState(0); // lightweight tick to tell Dashboard a new screenshot arrived
+
   const wsRef = useRef(null);
   const logsEndRef = useRef(null);
+  const logIdCounter = useRef(0); // stable IDs for log items — never use index as key
 
-  // Auto-scroll logs
+  // Auto-scroll logs using RAF to prevent layout thrash
   useEffect(() => {
-    if (logsEndRef.current) {
-      logsEndRef.current.scrollIntoView({ behavior: 'smooth' });
-    }
-  }, [statusLogs]);
+    const raf = requestAnimationFrame(() => {
+      logsEndRef.current?.scrollIntoView({ behavior: 'smooth', block: 'end' });
+    });
+    return () => cancelAnimationFrame(raf);
+  }, [statusLogs.length]);
 
   // Connect WebSocket on mount
   useEffect(() => {
@@ -60,6 +118,51 @@ function App() {
       }
     };
   }, []);
+
+  // Handle Hash Routing and state restoration on mount/refresh/hashchange
+  useEffect(() => {
+    const handleHashChange = async () => {
+      const hash = window.location.hash;
+      
+      if (!isLoggedIn) return; // wait for login to fetch auth-protected state
+
+      if (hash.startsWith('#/report/')) {
+        const id = hash.substring('#/report/'.length);
+        setSelectedTestId(id);
+        setActiveView('project-detail');
+      } else if (hash.startsWith('#/test/')) {
+        const id = hash.substring('#/test/'.length);
+        // Connect WS and fetch progress if test is active/recent
+        testIdRef.current = id;
+        setTestId(id);
+        setActiveView('dashboard');
+        
+        try {
+          const res = await fetch(`${API_URL}/test/${id}`, { headers: authHeaders });
+          if (res.ok) {
+            const data = await res.json();
+            if (data.success && data.report) {
+              setStatus(data.status === 'running' ? 'testing' : (data.status === 'complete' ? 'complete' : 'idle'));
+              setFrontendUrl(data.report.frontendUrl || '');
+              dispatch({ type: 'RESTORE_TEST_STATE', report: data.report });
+            }
+          }
+        } catch (e) {
+          console.error('Failed to restore running test:', e);
+        }
+      } else if (hash === '#/reports') {
+        setSelectedTestId(null);
+        setActiveView('reports');
+      } else {
+        setSelectedTestId(null);
+        setActiveView('dashboard');
+      }
+    };
+
+    handleHashChange();
+    window.addEventListener('hashchange', handleHashChange);
+    return () => window.removeEventListener('hashchange', handleHashChange);
+  }, [isLoggedIn, authHeaders]);
 
   const connectWebSocket = useCallback(() => {
     if (wsRef.current && (wsRef.current.readyState === WebSocket.OPEN || wsRef.current.readyState === WebSocket.CONNECTING)) return;
@@ -95,10 +198,8 @@ function App() {
 
   const addLog = useCallback((message, type = 'info') => {
     const time = new Date().toLocaleTimeString('en-IN', { hour12: false });
-    setStatusLogs((prev) => {
-      const newLogs = [...prev, { message, type, time }];
-      return newLogs.slice(-100);
-    });
+    const id = ++logIdCounter.current;
+    dispatch({ type: 'ADD_LOG', payload: { id, message, type, time } });
   }, []);
 
   const testIdRef = useRef(null);
@@ -119,7 +220,7 @@ function App() {
         break;
 
       case 'links-discovered':
-        setTotalPages(data.totalPages);
+        dispatch({ type: 'LINKS_DISCOVERED', totalPages: data.totalPages });
         addLog(
           `Discovered ${data.totalPages} pages (${data.headerLinks} header, ${data.footerLinks} footer)`,
           'success'
@@ -127,14 +228,15 @@ function App() {
         break;
 
       case 'page-start':
-        setProgress(data.progress || 0);
-        setLiveUrl(data.url);
+        dispatch({ type: 'PAGE_START', progress: data.progress || 0, url: data.url });
         addLog(`Testing page ${data.pageIndex + 1}/${data.totalPages}: ${data.text || data.url}`, 'info');
         break;
 
       case 'live-screenshot':
-        setLiveScreenshot(`data:image/png;base64,${data.image}`);
-        setLiveUrl(data.url);
+        // Store in ref to avoid cascading re-renders — only send a tick signal
+        liveScreenshotRef.current = `data:image/png;base64,${data.image}`;
+        dispatch({ type: 'SET_LIVE_URL', url: data.url });
+        setScreenshotTick((t) => t + 1);
         break;
 
       case 'screenshot-taken':
@@ -150,16 +252,11 @@ function App() {
         break;
 
       case 'page-complete':
-        setPagesCompleted((prev) => prev + 1);
-        setProgress(data.progress || 0);
-        setCompletedPages((prev) => {
-          const existing = prev.findIndex((p) => p.url === data.result.url || p.pageIndex === data.pageIndex);
-          if (existing >= 0) {
-            const updated = [...prev];
-            updated[existing] = { ...updated[existing], ...data.result, pageIndex: data.pageIndex };
-            return updated;
-          }
-          return [...prev, { ...data.result, pageIndex: data.pageIndex }];
+        dispatch({
+          type: 'PAGE_COMPLETE',
+          pageIndex: data.pageIndex,
+          result: data.result,
+          progress: data.progress || 0,
         });
         break;
 
@@ -169,8 +266,7 @@ function App() {
 
       case 'test-complete':
         setStatus('complete');
-        setProgress(100);
-        setFinalReport(data.report);
+        dispatch({ type: 'TEST_COMPLETE', report: data.report });
         addLog('🎉 Testing complete!', 'success');
         break;
 
@@ -226,14 +322,9 @@ function App() {
 
     setStatus('testing');
     setFrontendUrl(fUrl);
-    setProgress(0);
-    setTotalPages(0);
-    setPagesCompleted(0);
-    setStatusLogs([]);
-    setLiveScreenshot(null);
-    setLiveUrl('');
-    setCompletedPages([]);
-    setFinalReport(null);
+    dispatch({ type: 'RESET' });
+    liveScreenshotRef.current = null;
+    setScreenshotTick(0);
     testIdRef.current = null;
 
     addLog(`Starting test for: ${fUrl}`, 'info');
@@ -249,6 +340,7 @@ function App() {
       if (data.success) {
         setTestId(data.testId);
         testIdRef.current = data.testId;
+        window.location.hash = `/test/${data.testId}`;
       } else {
         setStatus('error');
         addLog(`Failed to start test: ${data.error}`, 'error');
@@ -262,16 +354,13 @@ function App() {
   const handleNewTest = useCallback(() => {
     setStatus('idle');
     setActiveView('dashboard');
-    setSelectedReport(null);
+    setSelectedTestId(null);
     setTestId(null);
-    setProgress(0);
-    setTotalPages(0);
-    setPagesCompleted(0);
-    setStatusLogs([]);
-    setLiveScreenshot(null);
-    setLiveUrl('');
-    setCompletedPages([]);
-    setFinalReport(null);
+    testIdRef.current = null;
+    liveScreenshotRef.current = null;
+    setScreenshotTick(0);
+    dispatch({ type: 'RESET' });
+    window.location.hash = '';
   }, []);
 
   const handleScreenshotClick = useCallback((url) => {
@@ -282,52 +371,54 @@ function App() {
   const handleNavigate = useCallback((view) => {
     if (view === 'dashboard') {
       setActiveView('dashboard');
-      setSelectedReport(null);
+      setSelectedTestId(null);
+      window.location.hash = '';
     } else if (view === 'reports') {
       setActiveView('reports');
-      setSelectedReport(null);
+      setSelectedTestId(null);
+      window.location.hash = '/reports';
     }
   }, []);
+
+  // ── TanStack Query: load report detail with automatic caching ──────────────
+  // The same report is never fetched twice within the staleTime window.
+  const {
+    data: selectedReportData,
+    isLoading: isLoadingReport,
+    error: reportError,
+  } = useQuery({
+    queryKey: ['report', selectedTestId],
+    queryFn: async () => {
+      if (!selectedTestId) return null;
+      const res = await fetch(`${API_URL}/reports/${selectedTestId}`, { headers: authHeaders });
+      if (!res.ok) throw new Error(`HTTP ${res.status}`);
+      const data = await res.json();
+      if (!data.success) throw new Error(data.error || 'Failed to load report');
+      return data.report;
+    },
+    enabled: !!selectedTestId,  // only fetch when a report is actually selected
+    staleTime: 10 * 60 * 1000, // cache individual report for 10 min
+  });
+
+  // Derive selectedReport from query data (mirrors old selectedReport state)
+  const selectedReport = selectedTestId ? selectedReportData ?? null : null;
 
   // Select a project from reports to view its dashboard
-  const handleSelectProject = useCallback(async (testId) => {
-    try {
-      setLoadingReport(true);
-      const res = await fetch(`${API_URL}/reports/${testId}`, {
-        headers: authHeaders,
-      });
-      const data = await res.json();
-      if (data.success && data.report) {
-        setSelectedReport(data.report);
-        setActiveView('project-detail');
-      } else {
-        console.error('Failed to load report:', data.error);
-      }
-    } catch (err) {
-      console.error('Error loading report:', err);
-    } finally {
-      setLoadingReport(false);
-    }
+  const handleSelectProject = useCallback((testId) => {
+    setSelectedTestId(testId);
+    setActiveView('project-detail');
+    window.location.hash = `/report/${testId}`;
   }, []);
 
-  // Memoize results grid
+  // Live test results grid — virtualized via VirtualPageGrid
   const resultsGrid = useMemo(() => {
     if (completedPages.length === 0) return null;
     return (
-      <section className="results">
-        <h2 className="results__title">
-          📄 Tested Pages ({completedPages.length}/{totalPages || '?'})
-        </h2>
-        <div className="results__grid">
-          {completedPages.map((page, idx) => (
-            <PageCard
-              key={page.url || idx}
-              page={page}
-              onScreenshotClick={handleScreenshotClick}
-            />
-          ))}
-        </div>
-      </section>
+      <VirtualPageGrid
+        pages={completedPages}
+        onScreenshotClick={handleScreenshotClick}
+        title={`Tested Pages (${completedPages.length}/${totalPages || '?'})`}
+      />
     );
   }, [completedPages, totalPages, handleScreenshotClick]);
 
@@ -357,14 +448,14 @@ function App() {
       )}
 
       {/* === PROJECT DETAIL VIEW (from reports) === */}
-      {activeView === 'project-detail' && loadingReport && (
+      {activeView === 'project-detail' && isLoadingReport && (
         <div className="reports-page__loading" style={{ marginTop: '80px' }}>
           <div className="reports-page__spinner"></div>
           <span>Loading project report...</span>
         </div>
       )}
 
-      {activeView === 'project-detail' && !loadingReport && selectedReport && (
+      {activeView === 'project-detail' && !isLoadingReport && selectedReport && (
         <div>
           <button className="reports-back-btn" onClick={() => handleNavigate('reports')}>
             <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
@@ -374,20 +465,11 @@ function App() {
           </button>
 
           {selectedReport.pages && selectedReport.pages.length > 0 && (
-            <section className="results">
-              <h2 className="results__title">
-                📄 Tested Pages [{selectedReport.pages.length}]
-              </h2>
-              <div className="results__grid">
-                {selectedReport.pages.map((page, idx) => (
-                  <PageCard
-                    key={page.url || idx}
-                    page={page}
-                    onScreenshotClick={handleScreenshotClick}
-                  />
-                ))}
-              </div>
-            </section>
+            <VirtualPageGrid
+              pages={selectedReport.pages}
+              onScreenshotClick={handleScreenshotClick}
+              title={`Tested Pages [${selectedReport.pages.length}]`}
+            />
           )}
 
           <FinalReport report={selectedReport} onNewTest={() => handleNavigate('reports')} />
@@ -399,11 +481,6 @@ function App() {
         <div className="hero-section">
           {/* Hero Content */}
           <section className="hero">
-            <div className="hero__badge">
-              <span className="hero__badge-dot"></span>
-              <span className="hero__badge-text">System Status: Active</span>
-            </div>
-
             <h1 className="hero__title">
               AI-Powered Testing<br />
               <span className="hero__title-gradient">for Your Websites.</span>
@@ -417,12 +494,10 @@ function App() {
                 <span className="hero__stat-value">50+</span>
                 <span className="hero__stat-label">Test Checks</span>
               </div>
-              <div className="hero__stat-divider"></div>
               <div className="hero__stat">
                 <span className="hero__stat-value">AI</span>
                 <span className="hero__stat-label">Analysis</span>
               </div>
-              <div className="hero__stat-divider"></div>
               <div className="hero__stat">
                 <span className="hero__stat-value">∞</span>
                 <span className="hero__stat-label">Pages</span>
@@ -673,7 +748,8 @@ function App() {
           totalPages={totalPages}
           pagesCompleted={pagesCompleted}
           statusLogs={statusLogs}
-          liveScreenshot={liveScreenshot}
+          liveScreenshotRef={liveScreenshotRef}
+          screenshotTick={screenshotTick}
           liveUrl={liveUrl}
           logsEndRef={logsEndRef}
         />
