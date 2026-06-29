@@ -58,8 +58,18 @@ const Header = ({ status, wsConnected, activeView, onNavigate }) => {
               src={user.picture}
               alt={user.name}
               title={`${user.name} (${user.email})`}
+              onClick={() => handleNavigate('profile')}
+              style={{ cursor: 'pointer', transition: 'box-shadow 0.3s' }}
+              onMouseEnter={(e) => e.currentTarget.style.boxShadow = '0 0 10px rgba(0, 240, 255, 0.5)'}
+              onMouseLeave={(e) => e.currentTarget.style.boxShadow = 'none'}
             />
-            <span className="header__user-name">{user.name.split(' ')[0]}</span>
+            <span 
+              className={`header__user-name ${activeView === 'profile' ? 'active' : ''}`}
+              onClick={() => handleNavigate('profile')}
+              style={{ cursor: 'pointer', color: activeView === 'profile' ? 'var(--accent-secondary)' : '#fff' }}
+            >
+              {user.name.split(' ')[0]}
+            </span>
             <button className="header__logout-btn" onClick={logout} title="Logout">
               <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
                 <path d="M9 21H5a2 2 0 01-2-2V5a2 2 0 012-2h4" />
@@ -108,9 +118,15 @@ const Header = ({ status, wsConnected, activeView, onNavigate }) => {
                 className="header__user-avatar"
                 src={user.picture}
                 alt={user.name}
+                onClick={() => handleNavigate('profile')}
+                style={{ cursor: 'pointer' }}
               />
-              <div className="header__user-info-mobile">
-                <span className="header__user-name">{user.name}</span>
+              <div 
+                className="header__user-info-mobile"
+                onClick={() => handleNavigate('profile')}
+                style={{ cursor: 'pointer' }}
+              >
+                <span className="header__user-name" style={{ color: activeView === 'profile' ? 'var(--accent-secondary)' : '#fff' }}>{user.name}</span>
                 <span className="header__user-email">{user.email}</span>
               </div>
               <button className="header__logout-btn" onClick={logout} title="Logout">

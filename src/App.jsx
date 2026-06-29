@@ -10,6 +10,7 @@ import LoginPage from './components/LoginPage';
 import Test from './test';
 import DynamicForm from './components/DynamicForm';
 import { useAuth } from './context/AuthContext';
+import ProfilePage from './components/ProfilePage';
 
 const baseApiUrl = import.meta.env.VITE_API_URL || `http://${window.location.hostname}:3001`;
 const API_URL = baseApiUrl.endsWith('/api') ? baseApiUrl : `${baseApiUrl}/api`;
@@ -153,6 +154,9 @@ function App() {
       } else if (hash === '#/reports') {
         setSelectedTestId(null);
         setActiveView('reports');
+      } else if (hash === '#/profile') {
+        setSelectedTestId(null);
+        setActiveView('profile');
       } else {
         setSelectedTestId(null);
         setActiveView('dashboard');
@@ -377,6 +381,10 @@ function App() {
       setActiveView('reports');
       setSelectedTestId(null);
       window.location.hash = '/reports';
+    } else if (view === 'profile') {
+      setActiveView('profile');
+      setSelectedTestId(null);
+      window.location.hash = '/profile';
     }
   }, []);
 
@@ -474,6 +482,11 @@ function App() {
 
           <FinalReport report={selectedReport} onNewTest={() => handleNavigate('reports')} />
         </div>
+      )}
+
+      {/* === PROFILE VIEW === */}
+      {activeView === 'profile' && (
+        <ProfilePage />
       )}
 
       {/* === DASHBOARD VIEW (default) === */}
