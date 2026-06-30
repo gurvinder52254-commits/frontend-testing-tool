@@ -328,18 +328,56 @@ function App() {
           body: JSON.stringify({ frontendUrl: fUrl }),
         });
         const data = await res.json();
-        if (data.success && data.urls && data.urls.length > 0) {
-          setDiscoveredUrls(data.urls);
-          setTestConfig({ fUrl, bUrl, scanType });
-          setStatus('url_selection');
-          addLog(`Discovered ${data.urls.length} URLs successfully.`, 'success');
+        if (data.success && data.jobId) {
+          const jobId = data.jobId;
+          addLog(`Scan job queued (Job ID: ${jobId}). Waiting for worker...`, 'info');
+          
+          const pollScanStatus = async () => {
+            try {
+              const statusRes = await fetch(`${API_URL}/scan-status/${jobId}`, {
+                headers: authHeaders,
+              });
+              const statusData = await statusRes.json();
+              if (statusData.success) {
+                if (statusData.status === 'completed') {
+                  const urls = statusData.result || [];
+                  if (urls.length > 0) {
+                    setDiscoveredUrls(urls);
+                    setTestConfig({ fUrl, bUrl, scanType });
+                    setStatus('url_selection');
+                    addLog(`Discovered ${urls.length} URLs successfully.`, 'success');
+                  } else {
+                    setStatus('error');
+                    addLog('No URLs were discovered on this domain.', 'error');
+                  }
+                } else if (statusData.status === 'failed') {
+                  setStatus('error');
+                  addLog(statusData.error || 'Domain scan failed during background crawling.', 'error');
+                } else {
+                  // State is 'queued' or 'active', continue polling
+                  const stateMsg = statusData.status === 'active' ? 'Crawler active...' : 'Queued in line...';
+                  addLog(`Scan status: ${stateMsg}`, 'info');
+                  setTimeout(pollScanStatus, 3000);
+                }
+              } else {
+                setStatus('error');
+                addLog(statusData.error || 'Failed to fetch scan status from server.', 'error');
+              }
+            } catch (pollErr) {
+              setStatus('error');
+              addLog(`Polling error: ${pollErr.message}`, 'error');
+            }
+          };
+
+          // Start polling status after 3 seconds
+          setTimeout(pollScanStatus, 3000);
         } else {
           setStatus('error');
-          addLog(data.error || 'Failed to discover URLs from the domain.', 'error');
+          addLog(data.error || 'Failed to queue the domain scan.', 'error');
         }
       } catch (err) {
         setStatus('error');
-        addLog(`Domain scan failed: ${err.message}`, 'error');
+        addLog(`Domain scan initialization failed: ${err.message}`, 'error');
       }
     } else {
       setTestConfig({ fUrl, bUrl, scanType });
