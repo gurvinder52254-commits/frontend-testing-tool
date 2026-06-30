@@ -10,6 +10,8 @@ import LoginPage from './components/LoginPage';
 import Test from './test';
 import DynamicForm from './components/DynamicForm';
 import { useAuth } from './context/AuthContext';
+import ProfilePage from './components/ProfilePage';
+import UrlSelection from './components/UrlSelection';
 
 const baseApiUrl = import.meta.env.VITE_API_URL || `http://${window.location.hostname}:3001`;
 const API_URL = baseApiUrl.endsWith('/api') ? baseApiUrl : `${baseApiUrl}/api`;
@@ -79,6 +81,7 @@ function App() {
   const isTestPage = window.location.pathname === '/test';
 
   const [testConfig, setTestConfig] = useState(null);
+  const [discoveredUrls, setDiscoveredUrls] = useState([]);
   const [showUserDetailsForm, setShowUserDetailsForm] = useState(false);
 
   const [wsConnected, setWsConnected] = useState(false);
@@ -153,6 +156,9 @@ function App() {
       } else if (hash === '#/reports') {
         setSelectedTestId(null);
         setActiveView('reports');
+      } else if (hash === '#/profile') {
+        setSelectedTestId(null);
+        setActiveView('profile');
       } else {
         setSelectedTestId(null);
         setActiveView('dashboard');
@@ -309,8 +315,40 @@ function App() {
     }
   }, [addLog]);
 
-  const handleStartTestClick = (fUrl, bUrl, scanType) => {
-    setTestConfig({ fUrl, bUrl, scanType });
+  const handleStartTestClick = async (fUrl, bUrl, scanType) => {
+    if (scanType === 'domain') {
+      setStatus('scanning_domain');
+      setFrontendUrl(fUrl);
+      dispatch({ type: 'RESET' });
+      addLog(`Scanning domain to discover URLs: ${fUrl}`, 'info');
+      try {
+        const res = await fetch(`${API_URL}/scan-domain`, {
+          method: 'POST',
+          headers: authHeaders,
+          body: JSON.stringify({ frontendUrl: fUrl }),
+        });
+        const data = await res.json();
+        if (data.success && data.urls && data.urls.length > 0) {
+          setDiscoveredUrls(data.urls);
+          setTestConfig({ fUrl, bUrl, scanType });
+          setStatus('url_selection');
+          addLog(`Discovered ${data.urls.length} URLs successfully.`, 'success');
+        } else {
+          setStatus('error');
+          addLog(data.error || 'Failed to discover URLs from the domain.', 'error');
+        }
+      } catch (err) {
+        setStatus('error');
+        addLog(`Domain scan failed: ${err.message}`, 'error');
+      }
+    } else {
+      setTestConfig({ fUrl, bUrl, scanType });
+      setShowUserDetailsForm(true);
+    }
+  };
+
+  const handleUrlSelectionContinue = (finalUrls) => {
+    setTestConfig(prev => ({ ...prev, urls: finalUrls }));
     setShowUserDetailsForm(true);
   };
 
@@ -318,7 +356,7 @@ function App() {
     setShowUserDetailsForm(false);
     if (!testConfig) return;
 
-    const { fUrl, bUrl, scanType } = testConfig;
+    const { fUrl, bUrl, scanType, urls } = testConfig;
 
     setStatus('testing');
     setFrontendUrl(fUrl);
@@ -333,7 +371,7 @@ function App() {
       const res = await fetch(`${API_URL}/start-test`, {
         method: 'POST',
         headers: authHeaders,
-        body: JSON.stringify({ frontendUrl: fUrl, backendUrl: bUrl || undefined, scanType, userDetails }),
+        body: JSON.stringify({ frontendUrl: fUrl, backendUrl: bUrl || undefined, scanType, userDetails, urls }),
       });
       const data = await res.json();
 
@@ -361,6 +399,7 @@ function App() {
     setScreenshotTick(0);
     dispatch({ type: 'RESET' });
     window.location.hash = '';
+    setDiscoveredUrls([]);
   }, []);
 
   const handleScreenshotClick = useCallback((url) => {
@@ -377,6 +416,10 @@ function App() {
       setActiveView('reports');
       setSelectedTestId(null);
       window.location.hash = '/reports';
+    } else if (view === 'profile') {
+      setActiveView('profile');
+      setSelectedTestId(null);
+      window.location.hash = '/profile';
     }
   }, []);
 
@@ -474,6 +517,11 @@ function App() {
 
           <FinalReport report={selectedReport} onNewTest={() => handleNavigate('reports')} />
         </div>
+      )}
+
+      {/* === PROFILE VIEW === */}
+      {activeView === 'profile' && (
+        <ProfilePage />
       )}
 
       {/* === DASHBOARD VIEW (default) === */}
@@ -714,6 +762,31 @@ function App() {
             </div>
           </section>
         </div>
+      )}
+
+      {/* === SCANNING DOMAIN LOADER === */}
+      {activeView === 'dashboard' && status === 'scanning_domain' && (
+        <div className="domain-scanning-loader">
+          <div className="domain-scanning-loader__radar">
+            <div className="domain-scanning-loader__circle"></div>
+            <div className="domain-scanning-loader__pulse"></div>
+            <div className="domain-scanning-loader__glow"></div>
+          </div>
+          <h3 className="domain-scanning-loader__title">Crawling Domain...</h3>
+          <p className="domain-scanning-loader__desc">
+            Our automated agent is scanning <strong>{frontendUrl}</strong> to extract all navigation links, footer links, body resources, and dropdown hierarchies. This will take a few seconds...
+          </p>
+        </div>
+      )}
+
+      {/* === URL SELECTION SCREEN === */}
+      {activeView === 'dashboard' && status === 'url_selection' && (
+        <UrlSelection 
+          initialUrls={discoveredUrls} 
+          baseUrl={frontendUrl}
+          onContinue={handleUrlSelectionContinue} 
+          onBack={handleNewTest}
+        />
       )}
 
       {/* Footer */}
