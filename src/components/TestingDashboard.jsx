@@ -120,6 +120,52 @@ function TestingDashboard({
   liveUrl,
   logsEndRef,
 }) {
+  const leftCardRef = useRef(null);   // left log card — height synced to the right
+  const rightColRef = useRef(null);   // right (Live Browser) column — the height source
+  const logScrollRef = useRef(null);  // the scrollable log container
+  const pinnedRef = useRef(true);     // is the user currently at the bottom of the log?
+
+  // Keep the left log panel exactly as tall as the right (Live Browser) panel.
+  useEffect(() => {
+    const rightEl = rightColRef.current;
+    const leftEl = leftCardRef.current;
+    if (!rightEl || !leftEl) return;
+
+    const sync = () => {
+      // On the stacked (mobile) layout, let the panel size naturally.
+      if (window.matchMedia('(max-width: 1024px)').matches) {
+        leftEl.style.height = '';
+        return;
+      }
+      leftEl.style.height = `${rightEl.offsetHeight}px`;
+    };
+
+    sync();
+    const ro = new ResizeObserver(sync);
+    ro.observe(rightEl);
+    window.addEventListener('resize', sync);
+    return () => {
+      ro.disconnect();
+      window.removeEventListener('resize', sync);
+    };
+  }, []);
+
+  // Track whether the log is scrolled to (near) the bottom.
+  const handleLogScroll = () => {
+    const el = logScrollRef.current;
+    if (!el) return;
+    pinnedRef.current = el.scrollHeight - el.scrollTop - el.clientHeight < 48;
+  };
+
+  // On new log entries, only auto-scroll to the latest if the user was already
+  // at the bottom of the log. If they scrolled up to read, leave them there.
+  useEffect(() => {
+    const el = logScrollRef.current;
+    if (el && pinnedRef.current) {
+      el.scrollTop = el.scrollHeight;
+    }
+  }, [statusLogs]);
+
   return (
     <div className="dashboard">
       {/* Progress Bar */}
@@ -139,8 +185,12 @@ function TestingDashboard({
       </div>
 
       <div className="dashboard__grid">
-        {/* Status Log Panel */}
-        <div className="glass-card">
+        {/* Status Log Panel — height matched to the right panel, scrolls internally */}
+        <div
+          className="glass-card"
+          ref={leftCardRef}
+          style={{ display: 'flex', flexDirection: 'column', boxSizing: 'border-box', overflow: 'hidden' }}
+        >
           <div className="glass-card__header">
             <span className="glass-card__title">📋 Live Testing Log</span>
             <span
@@ -156,18 +206,20 @@ function TestingDashboard({
             </span>
           </div>
 
-          <div className="status-log">
+          <div className="status-log" ref={logScrollRef} onScroll={handleLogScroll}>
             <LogList statusLogs={statusLogs} logsEndRef={logsEndRef} />
           </div>
         </div>
 
-        {/* Live Browser View — isolated in its own memo component */}
-        <LiveBrowserView
-          liveScreenshotRef={liveScreenshotRef}
-          screenshotTick={screenshotTick}
-          liveUrl={liveUrl}
-          status={status}
-        />
+        {/* Live Browser View — isolated in its own memo component; drives the row height */}
+        <div ref={rightColRef}>
+          <LiveBrowserView
+            liveScreenshotRef={liveScreenshotRef}
+            screenshotTick={screenshotTick}
+            liveUrl={liveUrl}
+            status={status}
+          />
+        </div>
       </div>
     </div>
   );

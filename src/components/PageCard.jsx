@@ -21,12 +21,29 @@ function getScoreFillColor(score) {
 const PageCard = memo(function PageCard({ page, onScreenshotClick }) {
   const [isCardExpanded, setIsCardExpanded] = useState(false);
   const [expanded, setExpanded] = useState(false);
+  const [view, setView] = useState('desktop'); // 'desktop' | 'mobile'
 
   const score = page.analysis?.overallScore || page.score || 0;
   const analysis = page.analysis || null;
-  const screenshotSrc = page.screenshotUrl
-    ? `${BACKEND_BASE}${page.screenshotUrl}`
-    : null;
+
+  // Desktop + Mobile screenshot sources (mobile is optional)
+  const desktopUrl = page.desktopScreenshotUrl || page.screenshotUrl;
+  const mobileUrl = page.mobileScreenshotUrl;
+  const desktopSrc = desktopUrl ? `${BACKEND_BASE}${desktopUrl}` : null;
+  const mobileSrc = mobileUrl ? `${BACKEND_BASE}${mobileUrl}` : null;
+  const hasMobile = !!mobileSrc;
+  const screenshotSrc = view === 'mobile' && mobileSrc ? mobileSrc : desktopSrc;
+
+  const viewTabStyle = (active) => ({
+    display: 'flex', alignItems: 'center', gap: 6,
+    padding: '5px 14px', fontSize: '0.72rem', fontWeight: 600,
+    borderRadius: '8px', cursor: 'pointer',
+    border: active ? '1px solid rgba(6,182,212,0.5)' : '1px solid rgba(255,255,255,0.1)',
+    background: active ? 'rgba(6,182,212,0.15)' : 'rgba(255,255,255,0.04)',
+    color: active ? '#22d3ee' : 'var(--text-secondary)',
+    transition: 'all 0.2s ease',
+  });
+
   const loadStatus = page.loadStatus || 'SUCCESS';
 
   return (
@@ -158,14 +175,33 @@ const PageCard = memo(function PageCard({ page, onScreenshotClick }) {
           }}
         >
           <div className="page-card" style={{ height: 'auto', border: 'none', background: 'transparent', backdropFilter: 'none', animation: 'none', padding: 0 }}>
+            {/* Desktop / Mobile viewport toggle */}
+            {(desktopSrc || mobileSrc) && (
+              <div className="viewport-toggle" style={{ display: 'flex', gap: 8, marginBottom: 10 }}>
+                <button type="button" onClick={(e) => { e.stopPropagation(); setView('desktop'); }} style={viewTabStyle(view === 'desktop')}>
+                  💻 Desktop
+                </button>
+                <button
+                  type="button"
+                  onClick={(e) => { e.stopPropagation(); if (hasMobile) setView('mobile'); }}
+                  disabled={!hasMobile}
+                  title={hasMobile ? 'Mobile view' : 'Mobile screenshot not available'}
+                  style={{ ...viewTabStyle(view === 'mobile'), opacity: hasMobile ? 1 : 0.4, cursor: hasMobile ? 'pointer' : 'not-allowed' }}
+                >
+                  📱 Mobile
+                </button>
+              </div>
+            )}
             <div className="page-card__screenshot-container">
               {screenshotSrc ? (
                 <img
                   className="page-card__screenshot"
                   src={screenshotSrc}
-                  alt={page.title || page.url}
+                  alt={`${view} view — ${page.title || page.url}`}
                   onClick={() => onScreenshotClick?.(screenshotSrc)}
-                  style={{ cursor: 'pointer' }}
+                  style={view === 'mobile'
+                    ? { cursor: 'pointer', maxWidth: 320, margin: '0 auto', display: 'block', borderRadius: 12, border: '1px solid rgba(255,255,255,0.1)' }
+                    : { cursor: 'pointer' }}
                   loading="lazy"
                 />
               ) : (

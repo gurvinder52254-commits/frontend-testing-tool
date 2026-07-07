@@ -12,6 +12,7 @@ import DynamicForm from './components/DynamicForm';
 import { useAuth } from './context/AuthContext';
 import ProfilePage from './components/ProfilePage';
 import UrlSelection from './components/UrlSelection';
+import AuditNotification from './components/AuditNotification';
 
 const baseApiUrl = import.meta.env.VITE_API_URL || `http://${window.location.hostname}:3001`;
 const API_URL = baseApiUrl.endsWith('/api') ? baseApiUrl : `${baseApiUrl}/api`;
@@ -102,15 +103,12 @@ function App() {
 
   const wsRef = useRef(null);
   const logsEndRef = useRef(null);
+  const dashboardRef = useRef(null); // scroll target for the "View Report" notification
   const logIdCounter = useRef(0); // stable IDs for log items — never use index as key
 
-  // Auto-scroll logs using RAF to prevent layout thrash
-  useEffect(() => {
-    const raf = requestAnimationFrame(() => {
-      logsEndRef.current?.scrollIntoView({ behavior: 'smooth', block: 'end' });
-    });
-    return () => cancelAnimationFrame(raf);
-  }, [statusLogs.length]);
+  // NOTE: auto-scroll-to-latest-log was intentionally removed so audit progress
+  // never yanks the page back. The user's scroll position is preserved; the
+  // bottom-right AuditNotification provides a "View Report" jump instead.
 
   // Connect WebSocket on mount
   useEffect(() => {
@@ -328,18 +326,56 @@ function App() {
           body: JSON.stringify({ frontendUrl: fUrl }),
         });
         const data = await res.json();
-        if (data.success && data.urls && data.urls.length > 0) {
-          setDiscoveredUrls(data.urls);
-          setTestConfig({ fUrl, bUrl, scanType });
-          setStatus('url_selection');
-          addLog(`Discovered ${data.urls.length} URLs successfully.`, 'success');
+        if (data.success && data.jobId) {
+          const jobId = data.jobId;
+          addLog(`Scan job queued (Job ID: ${jobId}). Waiting for worker...`, 'info');
+          
+          const pollScanStatus = async () => {
+            try {
+              const statusRes = await fetch(`${API_URL}/scan-status/${jobId}`, {
+                headers: authHeaders,
+              });
+              const statusData = await statusRes.json();
+              if (statusData.success) {
+                if (statusData.status === 'completed') {
+                  const urls = statusData.result || [];
+                  if (urls.length > 0) {
+                    setDiscoveredUrls(urls);
+                    setTestConfig({ fUrl, bUrl, scanType });
+                    setStatus('url_selection');
+                    addLog(`Discovered ${urls.length} URLs successfully.`, 'success');
+                  } else {
+                    setStatus('error');
+                    addLog('No URLs were discovered on this domain.', 'error');
+                  }
+                } else if (statusData.status === 'failed') {
+                  setStatus('error');
+                  addLog(statusData.error || 'Domain scan failed during background crawling.', 'error');
+                } else {
+                  // State is 'queued' or 'active', continue polling
+                  const stateMsg = statusData.status === 'active' ? 'Crawler active...' : 'Queued in line...';
+                  addLog(`Scan status: ${stateMsg}`, 'info');
+                  setTimeout(pollScanStatus, 3000);
+                }
+              } else {
+                setStatus('error');
+                addLog(statusData.error || 'Failed to fetch scan status from server.', 'error');
+              }
+            } catch (pollErr) {
+              setStatus('error');
+              addLog(`Polling error: ${pollErr.message}`, 'error');
+            }
+          };
+
+          // Start polling status after 3 seconds
+          setTimeout(pollScanStatus, 3000);
         } else {
           setStatus('error');
-          addLog(data.error || 'Failed to discover URLs from the domain.', 'error');
+          addLog(data.error || 'Failed to queue the domain scan.', 'error');
         }
       } catch (err) {
         setStatus('error');
-        addLog(`Domain scan failed: ${err.message}`, 'error');
+        addLog(`Domain scan initialization failed: ${err.message}`, 'error');
       }
     } else {
       setTestConfig({ fUrl, bUrl, scanType });
@@ -815,16 +851,28 @@ function App() {
       )}
 
       {activeView === 'dashboard' && (status === 'testing' || status === 'error') && (
-        <MemoizedDashboard
-          status={status}
+        <div ref={dashboardRef}>
+          <MemoizedDashboard
+            status={status}
+            progress={progress}
+            totalPages={totalPages}
+            pagesCompleted={pagesCompleted}
+            statusLogs={statusLogs}
+            liveScreenshotRef={liveScreenshotRef}
+            screenshotTick={screenshotTick}
+            liveUrl={liveUrl}
+            logsEndRef={logsEndRef}
+          />
+        </div>
+      )}
+
+      {/* Floating bottom-right notification while the audit runs — never moves the page */}
+      {activeView === 'dashboard' && status === 'testing' && (
+        <AuditNotification
           progress={progress}
-          totalPages={totalPages}
           pagesCompleted={pagesCompleted}
-          statusLogs={statusLogs}
-          liveScreenshotRef={liveScreenshotRef}
-          screenshotTick={screenshotTick}
-          liveUrl={liveUrl}
-          logsEndRef={logsEndRef}
+          totalPages={totalPages}
+          onView={() => dashboardRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' })}
         />
       )}
 
