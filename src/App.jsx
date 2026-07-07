@@ -12,6 +12,7 @@ import DynamicForm from './components/DynamicForm';
 import { useAuth } from './context/AuthContext';
 import ProfilePage from './components/ProfilePage';
 import UrlSelection from './components/UrlSelection';
+import AuditNotification from './components/AuditNotification';
 
 const baseApiUrl = import.meta.env.VITE_API_URL || `http://${window.location.hostname}:3001`;
 const API_URL = baseApiUrl.endsWith('/api') ? baseApiUrl : `${baseApiUrl}/api`;
@@ -102,15 +103,12 @@ function App() {
 
   const wsRef = useRef(null);
   const logsEndRef = useRef(null);
+  const dashboardRef = useRef(null); // scroll target for the "View Report" notification
   const logIdCounter = useRef(0); // stable IDs for log items — never use index as key
 
-  // Auto-scroll logs using RAF to prevent layout thrash
-  useEffect(() => {
-    const raf = requestAnimationFrame(() => {
-      logsEndRef.current?.scrollIntoView({ behavior: 'smooth', block: 'end' });
-    });
-    return () => cancelAnimationFrame(raf);
-  }, [statusLogs.length]);
+  // NOTE: auto-scroll-to-latest-log was intentionally removed so audit progress
+  // never yanks the page back. The user's scroll position is preserved; the
+  // bottom-right AuditNotification provides a "View Report" jump instead.
 
   // Connect WebSocket on mount
   useEffect(() => {
@@ -853,16 +851,28 @@ function App() {
       )}
 
       {activeView === 'dashboard' && (status === 'testing' || status === 'error') && (
-        <MemoizedDashboard
-          status={status}
+        <div ref={dashboardRef}>
+          <MemoizedDashboard
+            status={status}
+            progress={progress}
+            totalPages={totalPages}
+            pagesCompleted={pagesCompleted}
+            statusLogs={statusLogs}
+            liveScreenshotRef={liveScreenshotRef}
+            screenshotTick={screenshotTick}
+            liveUrl={liveUrl}
+            logsEndRef={logsEndRef}
+          />
+        </div>
+      )}
+
+      {/* Floating bottom-right notification while the audit runs — never moves the page */}
+      {activeView === 'dashboard' && status === 'testing' && (
+        <AuditNotification
           progress={progress}
-          totalPages={totalPages}
           pagesCompleted={pagesCompleted}
-          statusLogs={statusLogs}
-          liveScreenshotRef={liveScreenshotRef}
-          screenshotTick={screenshotTick}
-          liveUrl={liveUrl}
-          logsEndRef={logsEndRef}
+          totalPages={totalPages}
+          onView={() => dashboardRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' })}
         />
       )}
 

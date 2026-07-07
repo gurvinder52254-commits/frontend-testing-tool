@@ -1326,7 +1326,10 @@ body::before {
 
 /* ---------- Status Log ---------- */
 .status-log {
-  max-height: 280px;
+  /* Fills the remaining height of its card (which is height-matched to the
+     Live Browser panel) and scrolls internally to reveal the newest entries. */
+  flex: 1 1 0;
+  min-height: 0;
   overflow-y: auto;
   padding-right: 8px;
 }
