@@ -510,6 +510,13 @@ function App() {
     return <Test />;
   }
 
+  // Footer should only show on views where a normal page layout is used
+  // (not on full-viewport fixed layouts like ReportDashboard or TestingDashboard)
+  const showFooter =
+    activeView === 'reports' ||
+    activeView === 'profile' ||
+    (activeView === 'dashboard' && status === 'idle');
+
   return (
     <div className="app">
       {/* Animated Background Orbs */}
@@ -878,18 +885,20 @@ function App() {
         </div>
       )}
 
-      {/* Footer — rendered last so it always sits BELOW all content */}
-      <footer className="site-footer">
-        <div className="site-footer__inner">
-          <span className="site-footer__copy">© 2025 WEBTEST AI. ALL SYSTEMS OPERATIONAL.</span>
-          <div className="site-footer__links">
-            <a href="#" className="site-footer__link">PRIVACY</a>
-            <a href="#" className="site-footer__link">API DOCS</a>
-            <a href="#" className="site-footer__link site-footer__link--accent">STATUS</a>
-            <a href="#" className="site-footer__link">SUPPORT</a>
+      {/* Footer — only shown on views with a normal scroll layout */}
+      {showFooter && (
+        <footer className="site-footer">
+          <div className="site-footer__inner">
+            <span className="site-footer__copy">© 2025 WEBTEST AI. ALL SYSTEMS OPERATIONAL.</span>
+            <div className="site-footer__links">
+              <a href="#" className="site-footer__link">PRIVACY</a>
+              <a href="#" className="site-footer__link">API DOCS</a>
+              <a href="#" className="site-footer__link site-footer__link--accent">STATUS</a>
+              <a href="#" className="site-footer__link">SUPPORT</a>
+            </div>
           </div>
-        </div>
-      </footer>
+        </footer>
+      )}
     </div>
   );
 }
