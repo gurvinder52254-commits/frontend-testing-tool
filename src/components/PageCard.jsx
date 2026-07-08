@@ -21,7 +21,6 @@ function getScoreFillColor(score) {
 const PageCard = memo(function PageCard({ page, onScreenshotClick }) {
   const [isCardExpanded, setIsCardExpanded] = useState(false);
   const [expanded, setExpanded] = useState(false);
-  const [view, setView] = useState('desktop'); // 'desktop' | 'mobile'
 
   const score = page.analysis?.overallScore || page.score || 0;
   const analysis = page.analysis || null;
@@ -31,18 +30,12 @@ const PageCard = memo(function PageCard({ page, onScreenshotClick }) {
   const mobileUrl = page.mobileScreenshotUrl;
   const desktopSrc = desktopUrl ? `${BACKEND_BASE}${desktopUrl}` : null;
   const mobileSrc = mobileUrl ? `${BACKEND_BASE}${mobileUrl}` : null;
-  const hasMobile = !!mobileSrc;
-  const screenshotSrc = view === 'mobile' && mobileSrc ? mobileSrc : desktopSrc;
 
-  const viewTabStyle = (active) => ({
+  const thumbLabelStyle = {
     display: 'flex', alignItems: 'center', gap: 6,
-    padding: '5px 14px', fontSize: '0.72rem', fontWeight: 600,
-    borderRadius: '8px', cursor: 'pointer',
-    border: active ? '1px solid rgba(6,182,212,0.5)' : '1px solid rgba(255,255,255,0.1)',
-    background: active ? 'rgba(6,182,212,0.15)' : 'rgba(255,255,255,0.04)',
-    color: active ? '#22d3ee' : 'var(--text-secondary)',
-    transition: 'all 0.2s ease',
-  });
+    fontSize: '0.72rem', fontWeight: 600, color: 'var(--text-secondary)',
+    marginBottom: 6,
+  };
 
   const loadStatus = page.loadStatus || 'SUCCESS';
 
@@ -175,53 +168,73 @@ const PageCard = memo(function PageCard({ page, onScreenshotClick }) {
           }}
         >
           <div className="page-card" style={{ height: 'auto', border: 'none', background: 'transparent', backdropFilter: 'none', animation: 'none', padding: 0 }}>
-            {/* Desktop / Mobile viewport toggle */}
-            {(desktopSrc || mobileSrc) && (
-              <div className="viewport-toggle" style={{ display: 'flex', gap: 8, marginBottom: 10 }}>
-                <button type="button" onClick={(e) => { e.stopPropagation(); setView('desktop'); }} style={viewTabStyle(view === 'desktop')}>
-                  💻 Desktop
-                </button>
-                <button
-                  type="button"
-                  onClick={(e) => { e.stopPropagation(); if (hasMobile) setView('mobile'); }}
-                  disabled={!hasMobile}
-                  title={hasMobile ? 'Mobile view' : 'Mobile screenshot not available'}
-                  style={{ ...viewTabStyle(view === 'mobile'), opacity: hasMobile ? 1 : 0.4, cursor: hasMobile ? 'pointer' : 'not-allowed' }}
-                >
-                  📱 Mobile
-                </button>
+            {/* Desktop + Mobile thumbnails side by side (desktop left, mobile right) */}
+            {(desktopSrc || mobileSrc) ? (
+              <div style={{ display: 'flex', gap: 12, alignItems: 'flex-start', marginBottom: 4 }}>
+                {/* Desktop (left, wider) */}
+                <div style={{ flex: '2 1 0', minWidth: 0 }}>
+                  <div style={thumbLabelStyle}>💻 Desktop</div>
+                  <div className="page-card__screenshot-container" style={{ borderRadius: 10 }}>
+                    {desktopSrc ? (
+                      <img
+                        className="page-card__screenshot"
+                        src={desktopSrc}
+                        alt={`Desktop view — ${page.title || page.url}`}
+                        onClick={() => onScreenshotClick?.(desktopSrc)}
+                        style={{ cursor: 'pointer' }}
+                        loading="lazy"
+                      />
+                    ) : (
+                      <div className="live-browser__placeholder" style={{ height: '100%' }}>
+                        <div className="spinner" />
+                      </div>
+                    )}
+
+                    {/* Score Badge */}
+                    {score > 0 && (
+                      <div className={`page-card__score-badge page-card__score-badge--${getScoreClass(score)}`}>
+                        {score}
+                      </div>
+                    )}
+
+                    {/* Source Tag */}
+                    {page.source && (
+                      <div className="page-card__source-tag">{page.source}</div>
+                    )}
+                  </div>
+                </div>
+
+                {/* Mobile (right, narrower) */}
+                <div style={{ flex: '1 1 0', minWidth: 0 }}>
+                  <div style={thumbLabelStyle}>📱 Mobile</div>
+                  <div className="page-card__screenshot-container" style={{ borderRadius: 10 }}>
+                    {mobileSrc ? (
+                      <img
+                        className="page-card__screenshot"
+                        src={mobileSrc}
+                        alt={`Mobile view — ${page.title || page.url}`}
+                        onClick={() => onScreenshotClick?.(mobileSrc)}
+                        style={{ cursor: 'pointer' }}
+                        loading="lazy"
+                      />
+                    ) : (
+                      <div
+                        className="live-browser__placeholder"
+                        style={{ height: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center', textAlign: 'center', fontSize: '0.72rem', color: 'var(--text-muted)', padding: 8 }}
+                      >
+                        Mobile screenshot not available
+                      </div>
+                    )}
+                  </div>
+                </div>
               </div>
-            )}
-            <div className="page-card__screenshot-container">
-              {screenshotSrc ? (
-                <img
-                  className="page-card__screenshot"
-                  src={screenshotSrc}
-                  alt={`${view} view — ${page.title || page.url}`}
-                  onClick={() => onScreenshotClick?.(screenshotSrc)}
-                  style={view === 'mobile'
-                    ? { cursor: 'pointer', maxWidth: 320, margin: '0 auto', display: 'block', borderRadius: 12, border: '1px solid rgba(255,255,255,0.1)' }
-                    : { cursor: 'pointer' }}
-                  loading="lazy"
-                />
-              ) : (
+            ) : (
+              <div className="page-card__screenshot-container">
                 <div className="live-browser__placeholder" style={{ height: '100%' }}>
                   <div className="spinner" />
                 </div>
-              )}
-
-              {/* Score Badge */}
-              {score > 0 && (
-                <div className={`page-card__score-badge page-card__score-badge--${getScoreClass(score)}`}>
-                  {score}
-                </div>
-              )}
-
-              {/* Source Tag */}
-              {page.source && (
-                <div className="page-card__source-tag">{page.source}</div>
-              )}
-            </div>
+              </div>
+            )}
 
             <div className="page-card__body">
               <div className="page-card__title">{page.title || page.text || 'Untitled Page'}</div>
