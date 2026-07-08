@@ -1340,7 +1340,7 @@ body::before {
   background: rgba(255, 255, 255, 0.02);
   border-radius: var(--radius-sm);
   border-left: 3px solid var(--accent-primary);
-  font-size: 0.82rem;
+  font-size: 14px;
   color: var(--text-secondary);
   animation: logEntrance 0.4s cubic-bezier(0.16, 1, 0.3, 1) both;
   display: flex;
@@ -1375,7 +1375,7 @@ body::before {
 
 .status-log__time {
   font-family: var(--font-mono);
-  font-size: 0.7rem;
+  font-size: 13px;
   color: var(--text-muted);
   flex-shrink: 0;
 }
@@ -1633,7 +1633,7 @@ body::before {
 
 .page-card__url {
   font-family: var(--font-mono);
-  font-size: 0.72rem;
+  font-size: 13px;
   color: var(--text-muted);
   margin-bottom: 14px;
   white-space: nowrap;
@@ -1644,20 +1644,20 @@ body::before {
 .page-card__stats {
   display: grid;
   grid-template-columns: 1fr 1fr;
-  gap: 8px;
-  margin-bottom: 14px;
+  gap: 12px;
+  margin-bottom: 18px;
 }
 
 .page-card__stat {
   background: rgba(255, 255, 255, 0.03);
-  padding: 8px 12px;
+  padding: 11px 14px;
   border-radius: var(--radius-sm);
-  font-size: 0.75rem;
+  font-size: 14px;
 }
 
 .page-card__stat-label {
   color: var(--text-muted);
-  font-size: 0.65rem;
+  font-size: 13px;
   text-transform: uppercase;
   letter-spacing: 0.05em;
   margin-bottom: 2px;
@@ -1666,7 +1666,7 @@ body::before {
 .page-card__stat-value {
   font-weight: 700;
   font-family: var(--font-mono);
-  font-size: 0.85rem;
+  font-size: 15px;
 }
 
 .page-card__stat-value--success {
@@ -1695,7 +1695,7 @@ body::before {
   border-radius: var(--radius-sm);
   color: var(--accent-primary);
   font-family: var(--font-main);
-  font-size: 0.8rem;
+  font-size: 14px;
   font-weight: 600;
   cursor: pointer;
   transition: var(--transition-fast);
@@ -1719,7 +1719,7 @@ body::before {
 }
 
 .ai-analysis__section-title {
-  font-size: 0.72rem;
+  font-size: 13px;
   font-weight: 700;
   text-transform: uppercase;
   letter-spacing: 0.06em;
@@ -1751,7 +1751,7 @@ body::before {
 }
 
 .ai-analysis__list li {
-  font-size: 0.75rem;
+  font-size: 14px;
   color: var(--text-secondary);
   padding: 3px 0 3px 16px;
   position: relative;
@@ -1763,7 +1763,7 @@ body::before {
   position: absolute;
   left: 0;
   color: var(--text-muted);
-  font-size: 0.7rem;
+  font-size: 13px;
 }
 
 .ai-analysis__list--success li::before {
@@ -1782,7 +1782,7 @@ body::before {
 }
 
 .ai-analysis__summary {
-  font-size: 0.78rem;
+  font-size: 14px;
   color: var(--text-secondary);
   line-height: 1.6;
   padding: 12px;
@@ -1862,7 +1862,7 @@ body::before {
 }
 
 .final-report__big-score-label {
-  font-size: 0.55rem;
+  font-size: 12px;
   font-weight: 600;
   text-transform: uppercase;
   letter-spacing: 0.1em;
@@ -1878,7 +1878,7 @@ body::before {
 
 .final-report__url {
   font-family: var(--font-mono);
-  font-size: 0.85rem;
+  font-size: 15px;
   color: var(--text-muted);
 }
 
@@ -1905,7 +1905,7 @@ body::before {
 }
 
 .final-report__meta-label {
-  font-size: 0.7rem;
+  font-size: 13px;
   color: var(--text-muted);
   text-transform: uppercase;
   letter-spacing: 0.05em;
@@ -1928,7 +1928,7 @@ body::before {
 }
 
 .final-report__summary-card-title {
-  font-size: 0.85rem;
+  font-size: 15px;
   font-weight: 700;
   margin-bottom: 14px;
   display: flex;
@@ -1942,9 +1942,9 @@ body::before {
 }
 
 .final-report__summary-list li {
-  font-size: 0.8rem;
+  font-size: 14px;
   color: var(--text-secondary);
-  padding: 6px 0;
+  padding: 8px 0;
   border-bottom: 1px solid rgba(255, 255, 255, 0.03);
   display: flex;
   align-items: center;
@@ -2113,7 +2113,7 @@ body::before {
 }
 
 .page-card__meta-label {
-  font-size: 0.65rem;
+  font-size: 13px;
   font-weight: 700;
   color: var(--text-muted);
   text-transform: uppercase;
@@ -2121,7 +2121,7 @@ body::before {
 }
 
 .page-card__meta-value {
-  font-size: 0.75rem;
+  font-size: 14px;
   color: var(--text-secondary);
   line-height: 1.4;
   display: -webkit-box;
@@ -2139,7 +2139,7 @@ body::before {
 }
 
 .page-card__section-title {
-  font-size: 0.75rem;
+  font-size: 14px;
   font-weight: 800;
   color: var(--text-primary);
   margin-bottom: 10px;
@@ -2158,7 +2158,7 @@ body::before {
   border: 1px solid rgba(124, 58, 237, 0.2);
   border-radius: 6px;
   padding: 6px 10px;
-  font-size: 0.7rem;
+  font-size: 13px;
   transition: var(--transition-fast);
 }
 
@@ -2180,7 +2180,7 @@ body::before {
 }
 
 .page-card__button-status {
-  font-size: 0.6rem;
+  font-size: 12px;
   font-weight: 700;
   text-transform: uppercase;
 }
@@ -2199,7 +2199,7 @@ body::before {
 }
 
 .page-card__broken-item {
-  font-size: 0.7rem;
+  font-size: 13px;
   color: var(--error);
   padding: 4px 8px;
   background: var(--error-bg);
@@ -2230,7 +2230,7 @@ body::before {
   padding: 8px 12px;
   background: rgba(255, 255, 255, 0.03);
   border-radius: 6px;
-  font-size: 0.75rem;
+  font-size: 14px;
 }
 
 .page-card__list-item-info {
@@ -2248,7 +2248,7 @@ body::before {
 }
 
 .page-card__list-item-subtext {
-  font-size: 0.65rem;
+  font-size: 13px;
   color: var(--text-muted);
   white-space: nowrap;
   overflow: hidden;
@@ -2257,7 +2257,7 @@ body::before {
 
 .page-card__list-item-status {
   font-weight: 700;
-  font-size: 0.65rem;
+  font-size: 13px;
   text-transform: uppercase;
   flex-shrink: 0;
 }
@@ -2306,7 +2306,7 @@ body::before {
 }
 
 .final-report__stat-label {
-  font-size: 0.65rem;
+  font-size: 13px;
   font-weight: 600;
   color: var(--text-muted);
   text-transform: uppercase;
@@ -2322,7 +2322,7 @@ body::before {
 
 .final-report__error-preview small {
   display: block;
-  font-size: 0.65rem;
+  font-size: 13px;
   color: var(--error);
   font-weight: 700;
   text-transform: uppercase;
@@ -2331,7 +2331,7 @@ body::before {
 
 .final-report__error-preview code {
   font-family: var(--font-mono);
-  font-size: 0.75rem;
+  font-size: 14px;
   color: var(--text-secondary);
   word-break: break-all;
 }
@@ -2356,7 +2356,7 @@ body::before {
 .final-report__table {
   width: 100%;
   border-collapse: collapse;
-  font-size: 0.85rem;
+  font-size: 15px;
   text-align: left;
 }
 
@@ -2367,7 +2367,7 @@ body::before {
   color: var(--text-secondary);
   text-transform: uppercase;
   letter-spacing: 0.05em;
-  font-size: 0.7rem;
+  font-size: 13px;
   border-bottom: 2px solid var(--border-subtle);
 }
 
@@ -2388,7 +2388,7 @@ body::before {
 
 .final-report__table .page-url {
   font-family: var(--font-mono);
-  font-size: 0.7rem;
+  font-size: 13px;
   color: var(--text-muted);
 }
 
@@ -2456,7 +2456,7 @@ body::before {
 }
 
 .groq-panel__title {
-  font-size: 0.85rem;
+  font-size: 15px;
   font-weight: 700;
   color: var(--text-primary);
   text-transform: uppercase;
@@ -2468,7 +2468,7 @@ body::before {
 }
 
 .groq-panel__badge {
-  font-size: 0.65rem;
+  font-size: 13px;
   padding: 2px 8px;
   border-radius: 12px;
   font-weight: 700;
@@ -2502,13 +2502,13 @@ body::before {
 
 .groq-panel__error-msg {
   padding: 12px 16px;
-  font-size: 0.75rem;
+  font-size: 14px;
   color: var(--error);
 }
 
 .groq-panel__overview {
   padding: 12px 16px;
-  font-size: 0.75rem;
+  font-size: 14px;
   color: var(--text-secondary);
   border-bottom: 1px solid rgba(255, 255, 255, 0.05);
   line-height: 1.5;
@@ -2525,7 +2525,7 @@ body::before {
   background: none;
   border: none;
   padding: 10px 0;
-  font-size: 0.75rem;
+  font-size: 14px;
   font-family: var(--font-main);
   font-weight: 600;
   color: var(--text-muted);
@@ -2554,7 +2554,7 @@ body::before {
   color: #fff;
   padding: 1px 6px;
   border-radius: 10px;
-  font-size: 0.6rem;
+  font-size: 12px;
 }
 
 .groq-panel__tab--active .groq-panel__tab-count {
@@ -2577,7 +2577,7 @@ body::before {
 }
 
 .groq-panel__section-title {
-  font-size: 0.7rem;
+  font-size: 13px;
   font-weight: 700;
   color: var(--text-primary);
   text-transform: uppercase;
@@ -2595,10 +2595,10 @@ body::before {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  padding: 6px 10px;
+  padding: 9px 12px;
   background: rgba(255, 255, 255, 0.02);
   border-radius: 6px;
-  font-size: 0.7rem;
+  font-size: 13px;
 }
 
 .groq-panel__list-item--error {
@@ -2622,7 +2622,7 @@ body::before {
 }
 
 .groq-panel__tag {
-  font-size: 0.6rem;
+  font-size: 12px;
   padding: 2px 6px;
   border-radius: 4px;
   font-family: var(--font-mono);
@@ -2660,7 +2660,7 @@ body::before {
 }
 
 .groq-panel__nav-badge {
-  font-size: 0.65rem;
+  font-size: 13px;
   padding: 2px 8px;
   border-radius: 4px;
   font-weight: 600;
@@ -2683,7 +2683,7 @@ body::before {
 }
 
 .groq-panel__menu-item {
-  font-size: 0.65rem;
+  font-size: 13px;
   background: rgba(255, 255, 255, 0.05);
   padding: 2px 8px;
   border-radius: 12px;
@@ -2692,7 +2692,7 @@ body::before {
 
 /* Test Suggestions */
 .groq-panel__test-summary {
-  font-size: 0.75rem;
+  font-size: 14px;
   color: var(--text-primary);
   margin-bottom: 16px;
   padding: 10px;
@@ -2706,7 +2706,7 @@ body::before {
 }
 
 .groq-panel__category-title {
-  font-size: 0.75rem;
+  font-size: 14px;
   font-weight: 700;
   color: var(--accent-secondary);
   border-bottom: 1px solid rgba(6, 182, 212, 0.2);
@@ -2737,14 +2737,14 @@ body::before {
 
 .groq-panel__test-id {
   font-family: var(--font-mono);
-  font-size: 0.65rem;
+  font-size: 13px;
   color: var(--text-muted);
   font-weight: 700;
   margin-right: 8px;
 }
 
 .groq-panel__test-name {
-  font-size: 0.75rem;
+  font-size: 14px;
   font-weight: 600;
   color: var(--text-primary);
   flex: 1;
@@ -2756,14 +2756,14 @@ body::before {
 }
 
 .groq-panel__priority {
-  font-size: 0.6rem;
+  font-size: 12px;
   padding: 2px 6px;
   border-radius: 4px;
   font-weight: 700;
 }
 
 .groq-panel__test-desc {
-  font-size: 0.7rem;
+  font-size: 13px;
   color: var(--text-secondary);
   margin-bottom: 8px;
 }
@@ -2779,7 +2779,7 @@ body::before {
 }
 
 .groq-panel__step {
-  font-size: 0.65rem;
+  font-size: 13px;
   color: var(--text-secondary);
   display: flex;
   gap: 6px;
@@ -2792,7 +2792,7 @@ body::before {
 }
 
 .groq-panel__expected {
-  font-size: 0.65rem;
+  font-size: 13px;
   color: #10b981;
   font-weight: 500;
   padding-top: 6px;
@@ -2802,7 +2802,7 @@ body::before {
 /* Playwright Code */
 .groq-panel__code-filename {
   font-family: var(--font-mono);
-  font-size: 0.8rem;
+  font-size: 14px;
   color: var(--accent-secondary);
   margin-bottom: 12px;
   display: flex;
@@ -2811,7 +2811,7 @@ body::before {
 }
 
 .groq-panel__code-count {
-  font-size: 0.65rem;
+  font-size: 13px;
   background: rgba(6, 182, 212, 0.1);
   padding: 2px 8px;
   border-radius: 12px;
@@ -2833,7 +2833,7 @@ body::before {
   background: rgba(0, 0, 0, 0.3);
   border: none;
   font-family: var(--font-mono);
-  font-size: 0.7rem;
+  font-size: 13px;
   color: var(--text-secondary);
   cursor: pointer;
   text-align: center;
@@ -2850,7 +2850,7 @@ body::before {
   background: #0d1117;
   overflow-x: auto;
   font-family: var(--font-mono);
-  font-size: 0.7rem;
+  font-size: 13px;
   color: #e5e7eb;
   line-height: 1.4;
 }
@@ -2890,7 +2890,7 @@ body::before {
 }
 
 .groq-panel__results-stat-label {
-  font-size: 0.6rem;
+  font-size: 12px;
   text-transform: uppercase;
   color: var(--text-muted);
   margin-top: 4px;
@@ -2916,7 +2916,7 @@ body::before {
 }
 
 .groq-panel__pass-rate-text {
-  font-size: 0.65rem;
+  font-size: 13px;
   color: var(--text-secondary);
   text-align: right;
   display: block;
@@ -2953,31 +2953,31 @@ body::before {
 }
 
 .groq-panel__result-status {
-  font-size: 0.75rem;
+  font-size: 14px;
 }
 
 .groq-panel__result-name {
   flex: 1;
-  font-size: 0.75rem;
+  font-size: 14px;
   font-weight: 600;
   color: var(--text-primary);
 }
 
 .groq-panel__result-duration {
   font-family: var(--font-mono);
-  font-size: 0.65rem;
+  font-size: 13px;
   color: var(--text-muted);
 }
 
 .groq-panel__result-details {
-  font-size: 0.7rem;
+  font-size: 13px;
   color: var(--text-secondary);
   padding-left: 24px;
   line-height: 1.4;
 }
 
 .groq-panel__result-error {
-  font-size: 0.7rem;
+  font-size: 13px;
   color: #ef4444;
   padding-left: 24px;
   margin-top: 4px;
@@ -4650,4 +4650,195 @@ body::before {
   box-shadow: none;
   cursor: not-allowed;
   opacity: 0.6;
+}
+
+/* ============================================================
+ * Report Dashboard — persistent sidebar + tabbed content
+ * ============================================================ */
+.report-dashboard {
+  /* Full-bleed app-shell fixed below the sticky header. Only the children
+     scroll — the sidebar stays full-height and the header stays put. */
+  position: fixed;
+  top: 72px;      /* header height */
+  left: 0;
+  right: 0;
+  bottom: 0;
+  display: flex;
+  overflow: hidden;
+  z-index: 10;    /* above bg orbs, below header (50) and modals */
+}
+
+.report-dashboard__sidebar {
+  flex: 0 0 260px;
+  width: 260px;
+  height: 100%;
+  overflow-y: auto;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  background: var(--bg-card);
+  border-right: 1px solid var(--border-subtle);
+  padding: 20px 16px;
+  backdrop-filter: blur(16px);
+}
+
+.report-dashboard__back {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  background: transparent;
+  border: 1px solid var(--border-subtle);
+  color: var(--text-secondary);
+  padding: 8px 12px;
+  border-radius: 10px;
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
+  margin-bottom: 4px;
+  transition: all 0.2s ease;
+}
+.report-dashboard__back:hover {
+  color: var(--text-primary);
+  border-color: var(--border-active);
+}
+
+.report-dashboard__nav {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+.report-dashboard__nav-item {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  width: 100%;
+  text-align: left;
+  background: transparent;
+  border: 1px solid transparent;
+  color: var(--text-secondary);
+  padding: 11px 14px;
+  border-radius: 10px;
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+.report-dashboard__nav-item:hover {
+  background: rgba(255, 255, 255, 0.04);
+  color: var(--text-primary);
+}
+.report-dashboard__nav-item--active {
+  background: rgba(6, 182, 212, 0.14);
+  border-color: rgba(6, 182, 212, 0.4);
+  color: #22d3ee;
+}
+.report-dashboard__nav-icon {
+  font-size: 16px;
+}
+.report-dashboard__nav-badge {
+  margin-left: auto;
+  font-size: 11px;
+  font-weight: 700;
+  background: rgba(255, 255, 255, 0.08);
+  color: var(--text-secondary);
+  padding: 2px 8px;
+  border-radius: 20px;
+}
+.report-dashboard__nav-item--active .report-dashboard__nav-badge {
+  background: rgba(6, 182, 212, 0.25);
+  color: #22d3ee;
+}
+
+.report-dashboard__new {
+  margin-top: 8px;
+  padding: 10px 12px;
+  border-radius: 10px;
+  border: 1px solid rgba(6, 182, 212, 0.3);
+  background: rgba(6, 182, 212, 0.08);
+  color: #22d3ee;
+  font-size: 13px;
+  font-weight: 700;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+.report-dashboard__new:hover {
+  background: rgba(6, 182, 212, 0.16);
+}
+
+.report-dashboard__content {
+  flex: 1 1 auto;
+  height: 100%;
+  overflow-y: auto;
+  min-width: 0;
+  padding: 24px 32px 40px;
+}
+.report-dashboard__empty {
+  padding: 48px 24px;
+  text-align: center;
+  color: var(--text-muted);
+  background: var(--bg-card);
+  border: 1px solid var(--border-subtle);
+  border-radius: var(--radius-lg);
+}
+
+/* inner tabs (Error Summary / SEO / Empty Links) */
+.report-dashboard__tabs {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+  border-bottom: 1px solid var(--border-subtle);
+  margin: 8px 0 20px;
+}
+.report-dashboard__tab {
+  background: transparent;
+  border: none;
+  border-bottom: 2px solid transparent;
+  color: var(--text-secondary);
+  padding: 10px 16px;
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  margin-bottom: -1px;
+}
+.report-dashboard__tab:hover {
+  color: var(--text-primary);
+}
+.report-dashboard__tab--active {
+  color: #22d3ee;
+  border-bottom-color: #22d3ee;
+}
+/* summary cards are full-width inside a tab panel */
+.report-dashboard__tab-panel .final-report__summary-card {
+  width: 100%;
+}
+
+@media (max-width: 900px) {
+  .report-dashboard {
+    flex-direction: column;
+  }
+  .report-dashboard__sidebar {
+    width: 100%;
+    height: auto;
+    max-height: 42vh;
+    flex: 0 0 auto;
+    flex-direction: row;
+    flex-wrap: wrap;
+    align-items: center;
+    border-right: none;
+    border-bottom: 1px solid var(--border-subtle);
+  }
+  .report-dashboard__nav {
+    flex-direction: row;
+    flex-wrap: wrap;
+    flex: 1 1 auto;
+  }
+  .report-dashboard__nav-item {
+    width: auto;
+  }
+  .report-dashboard__content {
+    height: auto;
+    flex: 1 1 auto;
+    padding: 16px;
+  }
 }

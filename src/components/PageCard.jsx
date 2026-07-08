@@ -33,8 +33,18 @@ const PageCard = memo(function PageCard({ page, onScreenshotClick }) {
 
   const thumbLabelStyle = {
     display: 'flex', alignItems: 'center', gap: 6,
-    fontSize: '0.72rem', fontWeight: 600, color: 'var(--text-secondary)',
+    fontSize: '13px', fontWeight: 600, color: 'var(--text-secondary)',
     marginBottom: 6,
+  };
+
+  // Fixed-height box that shows the FULL screenshot with its own vertical scroll.
+  const thumbScrollStyle = {
+    height: 440,
+    overflowY: 'auto',
+    overflowX: 'hidden',
+    borderRadius: 10,
+    border: '1px solid rgba(255,255,255,0.08)',
+    background: 'var(--bg-secondary)',
   };
 
   const loadStatus = page.loadStatus || 'SUCCESS';
@@ -71,11 +81,11 @@ const PageCard = memo(function PageCard({ page, onScreenshotClick }) {
           {/* Source Tag */}
           {page.source && (
             <span style={{
-              fontSize: '0.65rem',
+              fontSize: '13px',
               fontWeight: 700,
               background: 'rgba(6, 182, 212, 0.15)',
               color: 'var(--accent-secondary)',
-              padding: '4px 8px',
+              padding: '7px 11px',
               borderRadius: '4px',
               textTransform: 'uppercase',
               flexShrink: 0
@@ -88,7 +98,7 @@ const PageCard = memo(function PageCard({ page, onScreenshotClick }) {
             <div style={{
               color: '#fff',
               fontWeight: 700,
-              fontSize: '0.92rem',
+              fontSize: '15px',
               overflow: 'hidden',
               textOverflow: 'ellipsis',
               whiteSpace: 'nowrap'
@@ -97,7 +107,7 @@ const PageCard = memo(function PageCard({ page, onScreenshotClick }) {
             </div>
             <div style={{
               color: 'var(--text-muted)',
-              fontSize: '0.72rem',
+              fontSize: '13px',
               overflow: 'hidden',
               textOverflow: 'ellipsis',
               whiteSpace: 'nowrap',
@@ -111,7 +121,7 @@ const PageCard = memo(function PageCard({ page, onScreenshotClick }) {
         <div style={{ display: 'flex', alignItems: 'center', gap: '16px', flexShrink: 0 }}>
           {/* Load Status Badge */}
           <span style={{
-            fontSize: '0.7rem',
+            fontSize: '13px',
             fontWeight: 700,
             background: loadStatus === 'SUCCESS' ? 'rgba(16, 185, 129, 0.12)' : 'rgba(239, 68, 68, 0.12)',
             color: loadStatus === 'SUCCESS' ? '#10b981' : '#ef4444',
@@ -125,7 +135,7 @@ const PageCard = memo(function PageCard({ page, onScreenshotClick }) {
           {/* AI Score Badge */}
           {score > 0 && (
             <span style={{
-              fontSize: '0.8rem',
+              fontSize: '14px',
               fontWeight: 800,
               background: `${getScoreFillColor(score)}15`,
               color: getScoreFillColor(score),
@@ -168,36 +178,35 @@ const PageCard = memo(function PageCard({ page, onScreenshotClick }) {
           }}
         >
           <div className="page-card" style={{ height: 'auto', border: 'none', background: 'transparent', backdropFilter: 'none', animation: 'none', padding: 0 }}>
-            {/* Desktop + Mobile thumbnails side by side (desktop left, mobile right) */}
+            {/* Desktop + Mobile — FULL screenshots, each with its own scroll box */}
             {(desktopSrc || mobileSrc) ? (
               <div style={{ display: 'flex', gap: 12, alignItems: 'flex-start', marginBottom: 4 }}>
                 {/* Desktop (left, wider) */}
                 <div style={{ flex: '2 1 0', minWidth: 0 }}>
                   <div style={thumbLabelStyle}>💻 Desktop</div>
-                  <div className="page-card__screenshot-container" style={{ borderRadius: 10 }}>
-                    {desktopSrc ? (
-                      <img
-                        className="page-card__screenshot"
-                        src={desktopSrc}
-                        alt={`Desktop view — ${page.title || page.url}`}
-                        onClick={() => onScreenshotClick?.(desktopSrc)}
-                        style={{ cursor: 'pointer' }}
-                        loading="lazy"
-                      />
-                    ) : (
-                      <div className="live-browser__placeholder" style={{ height: '100%' }}>
-                        <div className="spinner" />
-                      </div>
-                    )}
+                  <div style={{ position: 'relative' }}>
+                    <div style={thumbScrollStyle}>
+                      {desktopSrc ? (
+                        <img
+                          src={desktopSrc}
+                          alt={`Desktop view — ${page.title || page.url}`}
+                          onClick={() => onScreenshotClick?.(desktopSrc)}
+                          style={{ width: '100%', height: 'auto', display: 'block', cursor: 'pointer' }}
+                          loading="lazy"
+                        />
+                      ) : (
+                        <div className="live-browser__placeholder" style={{ height: '100%' }}>
+                          <div className="spinner" />
+                        </div>
+                      )}
+                    </div>
 
-                    {/* Score Badge */}
+                    {/* Score Badge + Source Tag pinned to the box (don't scroll with the image) */}
                     {score > 0 && (
                       <div className={`page-card__score-badge page-card__score-badge--${getScoreClass(score)}`}>
                         {score}
                       </div>
                     )}
-
-                    {/* Source Tag */}
                     {page.source && (
                       <div className="page-card__source-tag">{page.source}</div>
                     )}
@@ -207,20 +216,19 @@ const PageCard = memo(function PageCard({ page, onScreenshotClick }) {
                 {/* Mobile (right, narrower) */}
                 <div style={{ flex: '1 1 0', minWidth: 0 }}>
                   <div style={thumbLabelStyle}>📱 Mobile</div>
-                  <div className="page-card__screenshot-container" style={{ borderRadius: 10 }}>
+                  <div style={thumbScrollStyle}>
                     {mobileSrc ? (
                       <img
-                        className="page-card__screenshot"
                         src={mobileSrc}
                         alt={`Mobile view — ${page.title || page.url}`}
                         onClick={() => onScreenshotClick?.(mobileSrc)}
-                        style={{ cursor: 'pointer' }}
+                        style={{ width: '100%', height: 'auto', display: 'block', cursor: 'pointer' }}
                         loading="lazy"
                       />
                     ) : (
                       <div
                         className="live-browser__placeholder"
-                        style={{ height: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center', textAlign: 'center', fontSize: '0.72rem', color: 'var(--text-muted)', padding: 8 }}
+                        style={{ height: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center', textAlign: 'center', fontSize: '13px', color: 'var(--text-muted)', padding: 8 }}
                       >
                         Mobile screenshot not available
                       </div>
@@ -241,17 +249,17 @@ const PageCard = memo(function PageCard({ page, onScreenshotClick }) {
               <div className="page-card__url">{page.url}</div>
 
               {/* Metadata section */}
-              <div className="page-card__metadata" style={{ marginTop: 12, padding: '8px 12px', background: 'rgba(255,255,255,0.03)', borderRadius: '8px' }}>
+              <div className="page-card__metadata" style={{ marginTop: 18, padding: '12px 15px', background: 'rgba(255,255,255,0.03)', borderRadius: '8px' }}>
                 <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px' }}>
                   <div>
-                    <div style={{ fontSize: '0.65rem', color: 'var(--text-muted)', fontWeight: 700, textTransform: 'uppercase' }}>Description</div>
-                    <div style={{ fontSize: '0.75rem', color: 'var(--text-secondary)', marginTop: 2, display: '-webkit-box', WebkitLineClamp: '2', WebkitBoxOrient: 'vertical', overflow: 'hidden' }}>
+                    <div style={{ fontSize: '13px', color: 'var(--text-muted)', fontWeight: 700, textTransform: 'uppercase' }}>Description</div>
+                    <div style={{ fontSize: '14px', color: 'var(--text-secondary)', marginTop: 2, display: '-webkit-box', WebkitLineClamp: '2', WebkitBoxOrient: 'vertical', overflow: 'hidden' }}>
                       {page.elementsInfo?.seo?.description || 'No description found'}
                     </div>
                   </div>
                   <div>
-                    <div style={{ fontSize: '0.65rem', color: 'var(--text-muted)', fontWeight: 700, textTransform: 'uppercase' }}>Keywords</div>
-                    <div style={{ fontSize: '0.75rem', color: 'var(--text-secondary)', marginTop: 2, display: '-webkit-box', WebkitLineClamp: '2', WebkitBoxOrient: 'vertical', overflow: 'hidden' }}>
+                    <div style={{ fontSize: '13px', color: 'var(--text-muted)', fontWeight: 700, textTransform: 'uppercase' }}>Keywords</div>
+                    <div style={{ fontSize: '14px', color: 'var(--text-secondary)', marginTop: 2, display: '-webkit-box', WebkitLineClamp: '2', WebkitBoxOrient: 'vertical', overflow: 'hidden' }}>
                       {page.elementsInfo?.seo?.keywords || 'None'}
                     </div>
                   </div>
@@ -259,7 +267,7 @@ const PageCard = memo(function PageCard({ page, onScreenshotClick }) {
               </div>
 
               {/* Stats Grid */}
-              <div className="page-card__stats" style={{ marginTop: 16 }}>
+              <div className="page-card__stats" style={{ marginTop: 22 }}>
                 <div className="page-card__stat">
                   <div className="page-card__stat-label">Status</div>
                   <div
@@ -282,11 +290,11 @@ const PageCard = memo(function PageCard({ page, onScreenshotClick }) {
                 </div>
                 <div className="page-card__stat" style={{ gridColumn: '1 / -1' }}>
                   <div className="page-card__stat-label" style={{ textTransform: 'uppercase', letterSpacing: '0.5px', marginBottom: '8px' }}>Elements</div>
-                  <div className="page-card__stat-value" style={{ fontSize: '0.8rem', display: 'flex', flexDirection: 'column', gap: '8px' }}>
+                  <div className="page-card__stat-value" style={{ fontSize: '14px', display: 'flex', flexDirection: 'column', gap: '8px' }}>
                     <div style={{ fontWeight: '700', letterSpacing: '0.5px' }}>
                       🖼️ {page.elementsInfo?.counts?.images || 0} &nbsp;/&nbsp; 🔗 {page.elementsInfo?.counts?.links || 0} &nbsp;/&nbsp; 🔘 {page.elementsInfo?.counts?.buttons || 0} &nbsp;/&nbsp; 📝 {page.elementsInfo?.counts?.forms || 0}
                     </div>
-                    <div style={{ display: 'flex', gap: '16px', fontSize: '0.7rem', color: 'var(--text-muted)', flexWrap: 'wrap' }}>
+                    <div style={{ display: 'flex', gap: '16px', fontSize: '13px', color: 'var(--text-muted)', flexWrap: 'wrap' }}>
                       <span style={{ color: '#f59e0b', fontWeight: 'bold' }} title="Missing Image SRC">❌ Src: <span style={{ color: '#fff', opacity: 0.9 }}>{page.elementsInfo?.counts?.missingSrc || 0}</span></span>
                       <span style={{ color: '#06b6d4', fontWeight: 'bold' }} title="Missing Image ALT">🖼️ Alt: <span style={{ color: '#fff', opacity: 0.9 }}>{page.elementsInfo?.counts?.missingAlt || 0}</span></span>
                       <span style={{ color: '#a855f7', fontWeight: 'bold' }} title="Duplicate Image URLs">♊ Img Dup: <span style={{ color: '#fff', opacity: 0.9 }}>{page.elementsInfo?.counts?.duplicateImages || 0}</span></span>
@@ -299,11 +307,11 @@ const PageCard = memo(function PageCard({ page, onScreenshotClick }) {
 
               {/* Image Buttons Section */}
               {page.elementsInfo?.buttons?.filter(b => b.isImageButton).length > 0 && (
-                <div className="page-card__section" style={{ marginTop: 16 }}>
-                  <div style={{ fontSize: '0.75rem', fontWeight: 800, color: 'var(--accent-secondary)', marginBottom: 8, textTransform: 'uppercase' }}>🖼️ Image Content Buttons</div>
-                  <div className="page-card__scroll-list" style={{ maxHeight: '100px', overflowY: 'auto', display: 'flex', flexDirection: 'column', gap: '4px' }}>
+                <div className="page-card__section" style={{ marginTop: 22 }}>
+                  <div style={{ fontSize: '14px', fontWeight: 800, color: 'var(--accent-secondary)', marginBottom: 8, textTransform: 'uppercase' }}>🖼️ Image Content Buttons</div>
+                  <div className="page-card__scroll-list" style={{ maxHeight: '100px', overflowY: 'auto', display: 'flex', flexDirection: 'column', gap: '6px' }}>
                     {page.elementsInfo.buttons.filter(b => b.isImageButton).map((btn, idx) => (
-                      <div key={idx} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '6px 8px', background: 'rgba(6, 182, 212, 0.1)', borderRadius: '4px', fontSize: '0.7rem' }}>
+                      <div key={idx} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '9px 12px', background: 'rgba(6, 182, 212, 0.1)', borderRadius: '4px', fontSize: '13px' }}>
                         <span style={{ color: 'var(--accent-secondary)', fontWeight: 600, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', maxWidth: '50%' }}>
                           {btn.text}
                         </span>
@@ -311,7 +319,7 @@ const PageCard = memo(function PageCard({ page, onScreenshotClick }) {
                           <span style={{ color: btn.working?.includes('Yes') ? 'var(--success)' : (btn.working?.includes('No') ? 'var(--error)' : 'var(--warning)'), fontWeight: 700 }}>
                             {btn.working}
                           </span>
-                          {btn.reason && <span style={{ fontSize: '0.6rem', color: 'var(--text-muted)', textAlign: 'right', marginTop: '2px' }}>{btn.reason}</span>}
+                          {btn.reason && <span style={{ fontSize: '12px', color: 'var(--text-muted)', textAlign: 'right', marginTop: '2px' }}>{btn.reason}</span>}
                         </div>
                       </div>
                     ))}
@@ -321,11 +329,11 @@ const PageCard = memo(function PageCard({ page, onScreenshotClick }) {
 
               {/* Other Buttons Section */}
               {page.elementsInfo?.buttons?.filter(b => !b.isImageButton).length > 0 && (
-                <div className="page-card__section" style={{ marginTop: 16 }}>
-                  <div style={{ fontSize: '0.75rem', fontWeight: 800, color: 'var(--text-primary)', marginBottom: 8, textTransform: 'uppercase' }}>🔘 Interactive Buttons</div>
-                  <div className="page-card__scroll-list" style={{ maxHeight: '120px', overflowY: 'auto', display: 'flex', flexDirection: 'column', gap: '4px' }}>
+                <div className="page-card__section" style={{ marginTop: 22 }}>
+                  <div style={{ fontSize: '14px', fontWeight: 800, color: 'var(--text-primary)', marginBottom: 8, textTransform: 'uppercase' }}>🔘 Interactive Buttons</div>
+                  <div className="page-card__scroll-list" style={{ maxHeight: '120px', overflowY: 'auto', display: 'flex', flexDirection: 'column', gap: '6px' }}>
                     {page.elementsInfo.buttons.filter(b => !b.isImageButton).map((btn, idx) => (
-                      <div key={idx} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '6px 8px', background: 'rgba(255,255,255,0.02)', borderRadius: '4px', fontSize: '0.7rem' }}>
+                      <div key={idx} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '9px 12px', background: 'rgba(255,255,255,0.02)', borderRadius: '4px', fontSize: '13px' }}>
                         <span style={{ color: 'var(--text-primary)', fontWeight: 600, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', maxWidth: '50%' }}>
                           {btn.text}
                         </span>
@@ -333,7 +341,7 @@ const PageCard = memo(function PageCard({ page, onScreenshotClick }) {
                           <span style={{ color: btn.working?.includes('Yes') ? 'var(--success)' : (btn.working?.includes('No') ? 'var(--error)' : 'var(--warning)'), fontWeight: 700 }}>
                             {btn.working}
                           </span>
-                          {btn.reason && <span style={{ fontSize: '0.6rem', color: 'var(--text-muted)', textAlign: 'right', marginTop: '2px' }}>{btn.reason}</span>}
+                          {btn.reason && <span style={{ fontSize: '12px', color: 'var(--text-muted)', textAlign: 'right', marginTop: '2px' }}>{btn.reason}</span>}
                         </div>
                       </div>
                     ))}
@@ -343,11 +351,11 @@ const PageCard = memo(function PageCard({ page, onScreenshotClick }) {
 
               {/* All Page Links */}
               {page.brokenLinksCheck?.length > 0 && (
-                <div className="page-card__section" style={{ marginTop: 16 }}>
-                  <div style={{ fontSize: '0.75rem', fontWeight: 800, color: '#3b82f6', marginBottom: 8, textTransform: 'uppercase' }}>
+                <div className="page-card__section" style={{ marginTop: 22 }}>
+                  <div style={{ fontSize: '14px', fontWeight: 800, color: '#3b82f6', marginBottom: 8, textTransform: 'uppercase' }}>
                     🔗 All Page Links ({page.brokenLinksCheck.length} listed)
                   </div>
-                  <div className="page-card__scroll-list" style={{ maxHeight: '180px', overflowY: 'auto', display: 'flex', flexDirection: 'column', gap: '4px' }}>
+                  <div className="page-card__scroll-list" style={{ maxHeight: '180px', overflowY: 'auto', display: 'flex', flexDirection: 'column', gap: '6px' }}>
                     {page.brokenLinksCheck.map((link, idx) => {
                       const isDup = link.isDuplicate || link.reason === 'Duplicate Link';
                       const statusColor = link.status === 200 ? (isDup ? '#8b5cf6' : '#10b981')
@@ -361,27 +369,27 @@ const PageCard = memo(function PageCard({ page, onScreenshotClick }) {
                       return (
                         <div key={idx} title={link.href} style={{
                           display: 'flex', justifyContent: 'space-between', alignItems: 'center',
-                          padding: '6px 8px', background: isDup ? 'rgba(139, 92, 246, 0.15)' : 'rgba(59, 130, 246, 0.06)',
-                          borderRadius: '4px', fontSize: '0.65rem', gap: '8px',
+                          padding: '9px 12px', background: isDup ? 'rgba(139, 92, 246, 0.15)' : 'rgba(59, 130, 246, 0.06)',
+                          borderRadius: '4px', fontSize: '13px', gap: '8px',
                           borderLeft: `3px solid ${statusColor}`,
                         }}>
                           <div style={{ flex: 1, minWidth: 0 }}>
                             <div style={{ color: '#e2e8f0', fontWeight: 600, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
                               {link.text || 'No Text Found'}
                             </div>
-                            <div style={{ color: 'var(--text-muted)', fontSize: '0.6rem', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', marginTop: '2px' }}>
+                            <div style={{ color: 'var(--text-muted)', fontSize: '12px', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', marginTop: '2px' }}>
                               {displayUrl}
                             </div>
                           </div>
                           <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-end', flexShrink: 0 }}>
                             <span style={{
                               display: 'inline-block', padding: '2px 8px', borderRadius: '4px',
-                              fontSize: '0.6rem', fontWeight: 700, color: '#fff',
+                              fontSize: '12px', fontWeight: 700, color: '#fff',
                               background: statusColor, minWidth: '36px', textAlign: 'center'
                             }}>
                               {link.status === 200 ? (isDup ? 'DUP' : 'OK') : (link.status || 'ERR')}
                             </span>
-                            <span style={{ fontSize: '0.55rem', color: isDup ? '#c084fc' : 'var(--text-muted)', marginTop: '2px', fontWeight: isDup ? 600 : 400 }}>
+                            <span style={{ fontSize: '11px', color: isDup ? '#c084fc' : 'var(--text-muted)', marginTop: '2px', fontWeight: isDup ? 600 : 400 }}>
                               {link.reason}
                             </span>
                           </div>
@@ -394,8 +402,8 @@ const PageCard = memo(function PageCard({ page, onScreenshotClick }) {
 
               {/* Form Test Results */}
               {page.formTestResults?.length > 0 && (
-                <div className="page-card__section" style={{ marginTop: 16 }}>
-                  <div style={{ fontSize: '0.75rem', fontWeight: 800, color: '#a855f7', marginBottom: 10, textTransform: 'uppercase' }}>
+                <div className="page-card__section" style={{ marginTop: 22 }}>
+                  <div style={{ fontSize: '14px', fontWeight: 800, color: '#a855f7', marginBottom: 10, textTransform: 'uppercase' }}>
                     📝 Form Testing ({page.formTestResults.length} {page.formTestResults.length === 1 ? 'Section' : 'Sections'}{page.formTestResults.some(f => f.isDivForm) ? ` — ${page.formTestResults.filter(f => !f.isDivForm).length} Form, ${page.formTestResults.filter(f => f.isDivForm).length} Div` : ''})
                   </div>
                   <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
@@ -415,7 +423,7 @@ const PageCard = memo(function PageCard({ page, onScreenshotClick }) {
                         return (
                           <span style={{
                             display: 'inline-block', padding: '2px 8px', borderRadius: '4px',
-                            fontSize: '0.6rem', fontWeight: 700, color: '#fff',
+                            fontSize: '12px', fontWeight: 700, color: '#fff',
                             background: s.bg, minWidth: '36px', textAlign: 'center'
                           }}>
                             {s.text}
@@ -427,24 +435,24 @@ const PageCard = memo(function PageCard({ page, onScreenshotClick }) {
                         <div key={fIdx} style={{
                           background: 'rgba(168, 85, 247, 0.06)',
                           border: '1px solid rgba(168, 85, 247, 0.15)',
-                          borderRadius: '8px', padding: '10px 12px',
+                          borderRadius: '8px', padding: '13px 15px',
                         }}>
                           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 8 }}>
                             <div>
-                              <span style={{ fontSize: '0.75rem', fontWeight: 700, color: '#c084fc' }}>
+                              <span style={{ fontSize: '14px', fontWeight: 700, color: '#c084fc' }}>
                                 {form.isDivForm ? '📦' : '📝'} {form.isDivForm ? 'Div Section' : 'Form'}: {form.formId}
                               </span>
-                              <span style={{ fontSize: '0.6rem', color: 'var(--text-muted)', marginLeft: 8 }}>
+                              <span style={{ fontSize: '12px', color: 'var(--text-muted)', marginLeft: 8 }}>
                                 {form.isDivForm ? 'DIV' : form.method} • {form.totalFields} fields
                               </span>
                               {form.isDivForm && (
-                                <span style={{ fontSize: '0.55rem', color: '#06b6d4', background: 'rgba(6,182,212,0.15)', padding: '1px 5px', borderRadius: '3px', marginLeft: 6, fontWeight: 600 }}>
+                                <span style={{ fontSize: '11px', color: '#06b6d4', background: 'rgba(6,182,212,0.15)', padding: '1px 5px', borderRadius: '3px', marginLeft: 6, fontWeight: 600 }}>
                                   DIV-BASED
                                 </span>
                               )}
                             </div>
                             {form.hasSubmitButton && (
-                              <span style={{ fontSize: '0.6rem', color: '#a855f7', background: 'rgba(168,85,247,0.15)', padding: '2px 6px', borderRadius: '4px' }}>
+                              <span style={{ fontSize: '12px', color: '#a855f7', background: 'rgba(168,85,247,0.15)', padding: '2px 6px', borderRadius: '4px' }}>
                                 🔘 {form.submitButtonText}
                               </span>
                             )}
@@ -452,7 +460,7 @@ const PageCard = memo(function PageCard({ page, onScreenshotClick }) {
 
                           <div style={{
                             display: 'flex', justifyContent: 'space-between', alignItems: 'center',
-                            padding: '6px 8px', background: 'rgba(0,0,0,0.2)', borderRadius: '4px', marginBottom: 6, fontSize: '0.68rem'
+                            padding: '9px 12px', background: 'rgba(0,0,0,0.2)', borderRadius: '4px', marginBottom: 6, fontSize: '13px'
                           }}>
                             <span style={{ color: '#e2e8f0', fontWeight: 600 }}>🚫 Empty Submit Test</span>
                             <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
@@ -462,7 +470,7 @@ const PageCard = memo(function PageCard({ page, onScreenshotClick }) {
 
                           {form.invalidSubmitTest?.result && (
                             <div style={{ maxHeight: '80px', overflowY: 'auto', marginBottom: 8, paddingLeft: 8 }}>
-                              <div style={{ fontSize: '0.6rem', color: '#fbbf24', padding: '2px 0', display: 'flex', gap: 4 }}>
+                              <div style={{ fontSize: '12px', color: '#fbbf24', padding: '2px 0', display: 'flex', gap: 4 }}>
                                 <span style={{ color: '#f59e0b', fontWeight: 600, flexShrink: 0 }}>⚠ Result:</span>
                                 <span style={{ color: 'var(--text-secondary)' }}>{form.invalidSubmitTest.result}</span>
                               </div>
@@ -471,13 +479,13 @@ const PageCard = memo(function PageCard({ page, onScreenshotClick }) {
 
                           {form.fieldTests?.length > 0 && (
                             <div style={{ marginBottom: 6 }}>
-                              <div style={{ fontSize: '0.62rem', fontWeight: 700, color: 'var(--text-muted)', textTransform: 'uppercase', marginBottom: 4, letterSpacing: '0.5px' }}>
+                              <div style={{ fontSize: '12px', fontWeight: 700, color: 'var(--text-muted)', textTransform: 'uppercase', marginBottom: 4, letterSpacing: '0.5px' }}>
                                 Field Validation Tests
                               </div>
                               <div style={{
                                 display: 'grid', gridTemplateColumns: '2fr 55px 50px 50px 50px',
-                                gap: '4px', padding: '4px 8px', background: 'rgba(255,255,255,0.04)',
-                                borderRadius: '4px 4px 0 0', fontSize: '0.55rem', fontWeight: 700,
+                                gap: '6px', padding: '7px 11px', background: 'rgba(255,255,255,0.04)',
+                                borderRadius: '4px 4px 0 0', fontSize: '11px', fontWeight: 700,
                                 color: 'var(--text-muted)', textTransform: 'uppercase'
                               }}>
                                 <span>Field</span>
@@ -490,7 +498,7 @@ const PageCard = memo(function PageCard({ page, onScreenshotClick }) {
                                 {form.fieldTests.map((ft, ftIdx) => (
                                   <div key={ftIdx} title={`Invalid: ${ft.invalidTest?.error || 'N/A'}\nValid: ${ft.validTest?.error || 'OK'}`} style={{
                                     display: 'grid', gridTemplateColumns: '2fr 55px 50px 50px 50px',
-                                    gap: '4px', padding: '5px 8px', fontSize: '0.63rem',
+                                    gap: '6px', padding: '8px 11px', fontSize: '13px',
                                     borderBottom: '1px solid rgba(255,255,255,0.03)',
                                     background: ftIdx % 2 === 0 ? 'transparent' : 'rgba(255,255,255,0.015)',
                                   }}>
@@ -500,13 +508,13 @@ const PageCard = memo(function PageCard({ page, onScreenshotClick }) {
                                     <span style={{ textAlign: 'center' }}>
                                       <span style={{
                                         display: 'inline-block', padding: '1px 4px', borderRadius: '3px',
-                                        fontSize: '0.55rem', fontWeight: 600, color: '#a78bfa',
+                                        fontSize: '11px', fontWeight: 600, color: '#a78bfa',
                                         background: 'rgba(167,139,250,0.1)', textTransform: 'lowercase'
                                       }}>
                                         {ft.type}
                                       </span>
                                     </span>
-                                    <span style={{ textAlign: 'center', fontSize: '0.6rem', color: ft.required ? '#f59e0b' : '#6b7280' }}>
+                                    <span style={{ textAlign: 'center', fontSize: '12px', color: ft.required ? '#f59e0b' : '#6b7280' }}>
                                       {ft.required ? 'Yes' : 'No'}
                                     </span>
                                     <span style={{ textAlign: 'center' }}>{getStatusBadge(ft.invalidTest?.status)}</span>
@@ -519,19 +527,19 @@ const PageCard = memo(function PageCard({ page, onScreenshotClick }) {
 
                           <div style={{
                             display: 'flex', justifyContent: 'space-between', alignItems: 'center',
-                            padding: '6px 8px', background: 'rgba(0,0,0,0.2)', borderRadius: '4px', fontSize: '0.68rem'
+                            padding: '9px 12px', background: 'rgba(0,0,0,0.2)', borderRadius: '4px', fontSize: '13px'
                           }}>
                             <div style={{ flex: 1, minWidth: 0 }}>
                               <span style={{ color: '#e2e8f0', fontWeight: 600 }}>✅ Valid Submit Test</span>
                               {form.validSubmitTest?.result && (
-                                <div style={{ fontSize: '0.58rem', color: 'var(--text-muted)', marginTop: 2, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+                                <div style={{ fontSize: '11px', color: 'var(--text-muted)', marginTop: 2, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
                                   {form.validSubmitTest.result}
                                 </div>
                               )}
                             </div>
                             <div style={{ display: 'flex', alignItems: 'center', gap: 6, flexShrink: 0 }}>
                               {form.validSubmitTest?.apiStatus && (
-                                <span style={{ fontSize: '0.55rem', color: form.validSubmitTest.apiStatus < 400 ? '#10b981' : '#ef4444' }}>
+                                <span style={{ fontSize: '11px', color: form.validSubmitTest.apiStatus < 400 ? '#10b981' : '#ef4444' }}>
                                   API: {form.validSubmitTest.apiStatus}
                                 </span>
                               )}
@@ -550,17 +558,17 @@ const PageCard = memo(function PageCard({ page, onScreenshotClick }) {
                 (page.elementsInfo?.broken?.links?.length > 0) ||
                 (page.consoleErrors?.length > 0) ||
                 (page.networkErrors?.length > 0)) && (
-                  <div className="page-card__section" style={{ marginTop: 16 }}>
-                    <div style={{ fontSize: '0.75rem', fontWeight: 800, color: '#ef4444', marginBottom: 8, textTransform: 'uppercase' }}>⚠️ Quality Audit / Errors</div>
-                    <div className="page-card__scroll-list" style={{ maxHeight: '150px', overflowY: 'auto', display: 'flex', flexDirection: 'column', gap: '4px' }}>
+                  <div className="page-card__section" style={{ marginTop: 22 }}>
+                    <div style={{ fontSize: '14px', fontWeight: 800, color: '#ef4444', marginBottom: 8, textTransform: 'uppercase' }}>⚠️ Quality Audit / Errors</div>
+                    <div className="page-card__scroll-list" style={{ maxHeight: '150px', overflowY: 'auto', display: 'flex', flexDirection: 'column', gap: '6px' }}>
                       {page.consoleErrors?.map((err, idx) => (
-                        <div key={`err-${idx}`} style={{ fontSize: '0.65rem', color: '#ef4444', padding: '4px 8px', background: 'rgba(239, 68, 68, 0.1)', borderRadius: '4px' }}>
+                        <div key={`err-${idx}`} style={{ fontSize: '13px', color: '#ef4444', padding: '7px 11px', background: 'rgba(239, 68, 68, 0.1)', borderRadius: '4px' }}>
                           🚫 Console Error: {err.text || err.message || err}
                         </div>
                       ))}
 
                       {page.networkErrors?.map((err, idx) => (
-                        <div key={`net-${idx}`} style={{ fontSize: '0.65rem', color: '#f59e0b', padding: '4px 8px', background: 'rgba(245, 158, 11, 0.1)', borderRadius: '4px' }}>
+                        <div key={`net-${idx}`} style={{ fontSize: '13px', color: '#f59e0b', padding: '7px 11px', background: 'rgba(245, 158, 11, 0.1)', borderRadius: '4px' }}>
                           🌐 {err.type === 'HTTP_ERROR' ? `HTTP ${err.status}: ${err.statusText}` : `Network: ${err.errorText}`}
                         </div>
                       ))}
@@ -600,42 +608,42 @@ const PageCard = memo(function PageCard({ page, onScreenshotClick }) {
                 };
 
                 return (
-                  <div className="page-card__section" style={{ marginTop: 16 }}>
-                    <div style={{ fontSize: '0.75rem', fontWeight: 800, color: '#06b6d4', marginBottom: 10, textTransform: 'uppercase' }}>
+                  <div className="page-card__section" style={{ marginTop: 22 }}>
+                    <div style={{ fontSize: '14px', fontWeight: 800, color: '#06b6d4', marginBottom: 10, textTransform: 'uppercase' }}>
                       🌐 Network Activity
                     </div>
 
                     <div style={{
                       display: 'flex', flexWrap: 'wrap', gap: '8px', marginBottom: 12,
-                      padding: '10px 12px', background: 'rgba(6, 182, 212, 0.06)',
+                      padding: '13px 15px', background: 'rgba(6, 182, 212, 0.06)',
                       borderRadius: '8px', border: '1px solid rgba(6, 182, 212, 0.15)'
                     }}>
                       <div style={{ flex: '1 1 auto', textAlign: 'center', minWidth: '70px' }}>
-                        <div style={{ fontSize: '0.6rem', color: 'var(--text-muted)', textTransform: 'uppercase', fontWeight: 700 }}>Requests</div>
-                        <div style={{ fontSize: '0.95rem', fontWeight: 800, color: '#06b6d4' }}>{summary.totalRequests}</div>
+                        <div style={{ fontSize: '12px', color: 'var(--text-muted)', textTransform: 'uppercase', fontWeight: 700 }}>Requests</div>
+                        <div style={{ fontSize: '16px', fontWeight: 800, color: '#06b6d4' }}>{summary.totalRequests}</div>
                       </div>
                       <div style={{ flex: '1 1 auto', textAlign: 'center', minWidth: '70px' }}>
-                        <div style={{ fontSize: '0.6rem', color: 'var(--text-muted)', textTransform: 'uppercase', fontWeight: 700 }}>Transferred</div>
-                        <div style={{ fontSize: '0.95rem', fontWeight: 800, color: '#a855f7' }}>{formatSize(summary.totalTransferred)}</div>
+                        <div style={{ fontSize: '12px', color: 'var(--text-muted)', textTransform: 'uppercase', fontWeight: 700 }}>Transferred</div>
+                        <div style={{ fontSize: '16px', fontWeight: 800, color: '#a855f7' }}>{formatSize(summary.totalTransferred)}</div>
                       </div>
                       <div style={{ flex: '1 1 auto', textAlign: 'center', minWidth: '70px' }}>
-                        <div style={{ fontSize: '0.6rem', color: 'var(--text-muted)', textTransform: 'uppercase', fontWeight: 700 }}>DOMContent</div>
-                        <div style={{ fontSize: '0.95rem', fontWeight: 800, color: '#3b82f6' }}>{formatTime(summary.domContentLoaded)}</div>
+                        <div style={{ fontSize: '12px', color: 'var(--text-muted)', textTransform: 'uppercase', fontWeight: 700 }}>DOMContent</div>
+                        <div style={{ fontSize: '16px', fontWeight: 800, color: '#3b82f6' }}>{formatTime(summary.domContentLoaded)}</div>
                       </div>
                       <div style={{ flex: '1 1 auto', textAlign: 'center', minWidth: '70px' }}>
-                        <div style={{ fontSize: '0.6rem', color: 'var(--text-muted)', textTransform: 'uppercase', fontWeight: 700 }}>Load</div>
-                        <div style={{ fontSize: '0.95rem', fontWeight: 800, color: '#f59e0b' }}>{formatTime(summary.loadTime)}</div>
+                        <div style={{ fontSize: '12px', color: 'var(--text-muted)', textTransform: 'uppercase', fontWeight: 700 }}>Load</div>
+                        <div style={{ fontSize: '16px', fontWeight: 800, color: '#f59e0b' }}>{formatTime(summary.loadTime)}</div>
                       </div>
                       <div style={{ flex: '1 1 auto', textAlign: 'center', minWidth: '70px' }}>
-                        <div style={{ fontSize: '0.6rem', color: 'var(--text-muted)', textTransform: 'uppercase', fontWeight: 700 }}>Finish</div>
-                        <div style={{ fontSize: '0.95rem', fontWeight: 800, color: '#10b981' }}>{formatTime(summary.finishTime)}</div>
+                        <div style={{ fontSize: '12px', color: 'var(--text-muted)', textTransform: 'uppercase', fontWeight: 700 }}>Finish</div>
+                        <div style={{ fontSize: '16px', fontWeight: 800, color: '#10b981' }}>{formatTime(summary.finishTime)}</div>
                       </div>
                     </div>
 
                     <div style={{
                       display: 'grid', gridTemplateColumns: '2fr 50px 65px 60px 55px',
-                      gap: '4px', padding: '6px 8px', background: 'rgba(255,255,255,0.05)',
-                      borderRadius: '6px 6px 0 0', fontSize: '0.6rem', fontWeight: 700,
+                      gap: '6px', padding: '9px 12px', background: 'rgba(255,255,255,0.05)',
+                      borderRadius: '6px 6px 0 0', fontSize: '12px', fontWeight: 700,
                       color: 'var(--text-muted)', textTransform: 'uppercase', letterSpacing: '0.5px'
                     }}>
                       <span>Name</span>
@@ -649,7 +657,7 @@ const PageCard = memo(function PageCard({ page, onScreenshotClick }) {
                       {net.requests.map((req, idx) => (
                         <div key={idx} title={req.url} style={{
                           display: 'grid', gridTemplateColumns: '2fr 50px 65px 60px 55px',
-                          gap: '4px', padding: '5px 8px', fontSize: '0.65rem',
+                          gap: '6px', padding: '8px 11px', fontSize: '13px',
                           borderBottom: '1px solid rgba(255,255,255,0.03)',
                           background: idx % 2 === 0 ? 'transparent' : 'rgba(255,255,255,0.015)',
                           transition: 'background 0.15s',
@@ -663,7 +671,7 @@ const PageCard = memo(function PageCard({ page, onScreenshotClick }) {
                           </span>
                           <span style={{ textAlign: 'center' }}>
                             <span style={{
-                              display: 'inline-block', padding: '1px 6px', borderRadius: '3px', fontSize: '0.6rem', fontWeight: 700,
+                              display: 'inline-block', padding: '1px 6px', borderRadius: '3px', fontSize: '12px', fontWeight: 700,
                               color: '#fff', background: getStatusColor(req.status), minWidth: '28px', textAlign: 'center'
                             }}>
                               {req.status || '—'}
@@ -671,7 +679,7 @@ const PageCard = memo(function PageCard({ page, onScreenshotClick }) {
                           </span>
                           <span style={{ textAlign: 'center' }}>
                             <span style={{
-                              display: 'inline-block', padding: '1px 5px', borderRadius: '3px', fontSize: '0.55rem', fontWeight: 600,
+                              display: 'inline-block', padding: '1px 5px', borderRadius: '3px', fontSize: '11px', fontWeight: 600,
                               color: getTypeColor(req.type), background: `${getTypeColor(req.type)}15`, textTransform: 'lowercase'
                             }}>
                               {req.type || '—'}

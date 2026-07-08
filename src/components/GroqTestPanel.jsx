@@ -391,7 +391,7 @@ const GroqTestPanel = memo(function GroqTestPanel({ groqAnalysis }) {
               <div className="groq-panel__empty">
                 <div className="groq-panel__empty-icon">🧪</div>
                 <p>No test execution results available yet.</p>
-                <p style={{ fontSize: '0.7rem', color: 'var(--text-muted)' }}>
+                <p style={{ fontSize: '13px', color: 'var(--text-muted)' }}>
                   Tests run when Groq AI generates Playwright code successfully.
                 </p>
               </div>
