@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import VirtualPageGrid from './VirtualPageGrid';
+import AiIssuesPanel from './AiIssuesPanel';
 import {
   ReportHeader,
   SuggestedFixes,
@@ -46,6 +47,12 @@ const SIDEBAR_ITEMS = [
     key: 'links',
     label: 'Empty Links',
     icon: '🔗',
+    group: 'Analysis',
+  },
+  {
+    key: 'ai',
+    label: 'AI Issues',
+    icon: '🤖',
     group: 'Analysis',
   },
 ];
@@ -597,7 +604,13 @@ export default function ReportDashboard({ report, onScreenshotClick, pagesTitle,
             <LinksPanel report={report} />
           </div>
         )}
+
+        {/* AI Issues */}
+        {section === 'ai' && (
+          <AiIssuesPanel report={report} />
+        )}
       </main>
+
     </div>
   );
 }
