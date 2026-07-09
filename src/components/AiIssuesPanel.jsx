@@ -62,6 +62,14 @@ function IssueCard({ issue, onAction, onVerify, verifyingId }) {
   const confidenceScore = issue.confidence_score || rawJson?.confidenceScore || rawJson?.confidence_score || '90%';
   const locationInfo    = rawJson?.screenshotLocation || rawJson?.screenshot_location || 'See main description';
 
+  // Structured test-case fields (DB column → raw JSON fallback)
+  const expectedBehavior = issue.expected_behavior || rawJson?.expectedBehavior || rawJson?.expected_behavior || '';
+  const actualBehavior   = issue.actual_behavior || rawJson?.actualBehavior || rawJson?.actual_behavior || '';
+  const reproSteps = issue.reproduction_steps
+    || (Array.isArray(rawJson?.reproductionSteps)
+        ? rawJson.reproductionSteps.map((s, i) => `${i + 1}. ${s}`).join('\n')
+        : (rawJson?.reproductionSteps || ''));
+
   const handleVerify = async () => {
     setVerifyResult(null);
     const result = await onVerify(issue.id);
@@ -106,6 +114,32 @@ function IssueCard({ issue, onAction, onVerify, verifyingId }) {
         <div className="ai-issue-card__body">
           {/* Main Description */}
           <p className="ai-issue-card__desc" style={{ whiteSpace: 'pre-wrap' }}>{issue.description}</p>
+
+          {/* Structured test case: Expected vs Actual */}
+          {(expectedBehavior || actualBehavior) && (
+            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr))', gap: '10px', marginTop: '10px' }}>
+              {expectedBehavior && (
+                <div style={{ background: 'rgba(16,185,129,0.06)', border: '1px solid rgba(16,185,129,0.2)', borderRadius: '8px', padding: '10px 12px' }}>
+                  <span style={{ display: 'block', fontSize: '12px', color: '#10b981', fontWeight: 700, textTransform: 'uppercase', marginBottom: 4 }}>✓ Expected Behavior</span>
+                  <span style={{ fontSize: '14px', color: 'var(--text-secondary)', whiteSpace: 'pre-wrap' }}>{expectedBehavior}</span>
+                </div>
+              )}
+              {actualBehavior && (
+                <div style={{ background: 'rgba(239,68,68,0.06)', border: '1px solid rgba(239,68,68,0.2)', borderRadius: '8px', padding: '10px 12px' }}>
+                  <span style={{ display: 'block', fontSize: '12px', color: '#ef4444', fontWeight: 700, textTransform: 'uppercase', marginBottom: 4 }}>✗ Actual Behavior</span>
+                  <span style={{ fontSize: '14px', color: 'var(--text-secondary)', whiteSpace: 'pre-wrap' }}>{actualBehavior}</span>
+                </div>
+              )}
+            </div>
+          )}
+
+          {/* Reproduction steps */}
+          {reproSteps && (
+            <div style={{ marginTop: '10px', background: 'rgba(255,255,255,0.02)', border: '1px solid rgba(255,255,255,0.06)', borderRadius: '8px', padding: '10px 12px' }}>
+              <span style={{ display: 'block', fontSize: '12px', color: 'var(--text-muted)', fontWeight: 700, textTransform: 'uppercase', marginBottom: 4 }}>🔁 Reproduction Steps</span>
+              <div style={{ fontSize: '14px', color: 'var(--text-secondary)', whiteSpace: 'pre-wrap', fontFamily: 'var(--font-mono)' }}>{reproSteps}</div>
+            </div>
+          )}
 
           {/* Audit Metrics Grid */}
           <div style={{
