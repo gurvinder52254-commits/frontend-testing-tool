@@ -18,7 +18,7 @@ const OVERSCAN = 5; // number of cards to render above/below viewport
  *   onScreenshotClick - callback(url) for image modal
  *   title             - optional section heading (default: "Tested Pages")
  */
-function VirtualPageGrid({ pages, onScreenshotClick, title }) {
+function VirtualPageGrid({ pages, onScreenshotClick, title, fillHeight = false }) {
   const parentRef = useRef(null);
 
   const virtualizer = useVirtualizer({
@@ -33,18 +33,23 @@ function VirtualPageGrid({ pages, onScreenshotClick, title }) {
   if (pages.length === 0) return null;
 
   return (
-    <section className="results">
+    <section
+      className="results"
+      style={fillHeight ? { height: '100%', display: 'flex', flexDirection: 'column', minHeight: 0 } : undefined}
+    >
       <h2 className="results__title">
         📄 {title || `Tested Pages (${pages.length})`}
       </h2>
 
-      {/* Scrollable viewport — height matches a reasonable visible area */}
+      {/* Scrollable viewport — fills the dashboard content area (fillHeight) or a fixed area */}
       <div
         ref={parentRef}
         style={{
-          height: '80vh',
+          height: fillHeight ? 'auto' : '80vh',
+          flex: fillHeight ? '1 1 0' : undefined,
+          minHeight: 0,
           overflowY: 'auto',
-          contain: 'strict',
+          contain: fillHeight ? 'layout paint' : 'strict',
           scrollbarWidth: 'thin',
           scrollbarColor: 'rgba(0,240,255,0.3) rgba(255,255,255,0.04)',
         }}

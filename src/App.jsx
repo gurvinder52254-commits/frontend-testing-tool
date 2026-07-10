@@ -3,7 +3,7 @@ import { useQuery } from '@tanstack/react-query';
 import TestForm from './components/TestForm';
 import TestingDashboard from './components/TestingDashboard';
 import VirtualPageGrid from './components/VirtualPageGrid';
-import FinalReport from './components/FinalReport';
+import ReportDashboard from './components/ReportDashboard';
 import ReportsPage from './components/ReportsPage';
 import Header from './components/Header';
 import LoginPage from './components/LoginPage';
@@ -510,6 +510,13 @@ function App() {
     return <Test />;
   }
 
+  // Footer should only show on views where a normal page layout is used
+  // (not on full-viewport fixed layouts like ReportDashboard or TestingDashboard)
+  const showFooter =
+    activeView === 'reports' ||
+    activeView === 'profile' ||
+    (activeView === 'dashboard' && status === 'idle');
+
   return (
     <div className="app">
       {/* Animated Background Orbs */}
@@ -535,24 +542,12 @@ function App() {
       )}
 
       {activeView === 'project-detail' && !isLoadingReport && selectedReport && (
-        <div>
-          <button className="reports-back-btn" onClick={() => handleNavigate('reports')}>
-            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
-              <path d="M19 12H5M12 19l-7-7 7-7" />
-            </svg>
-            Back to Reports
-          </button>
-
-          {selectedReport.pages && selectedReport.pages.length > 0 && (
-            <VirtualPageGrid
-              pages={selectedReport.pages}
-              onScreenshotClick={handleScreenshotClick}
-              title={`Tested Pages [${selectedReport.pages.length}]`}
-            />
-          )}
-
-          <FinalReport report={selectedReport} onNewTest={() => handleNavigate('reports')} />
-        </div>
+        <ReportDashboard
+          report={selectedReport}
+          onScreenshotClick={handleScreenshotClick}
+          pagesTitle={`Tested Pages [${selectedReport.pages?.length || 0}]`}
+          onBack={() => handleNavigate('reports')}
+        />
       )}
 
       {/* === PROFILE VIEW === */}
@@ -825,19 +820,6 @@ function App() {
         />
       )}
 
-      {/* Footer */}
-      <footer className="site-footer">
-        <div className="site-footer__inner">
-          <span className="site-footer__copy">© 2025 WEBTEST AI. ALL SYSTEMS OPERATIONAL.</span>
-          <div className="site-footer__links">
-            <a href="#" className="site-footer__link">PRIVACY</a>
-            <a href="#" className="site-footer__link">API DOCS</a>
-            <a href="#" className="site-footer__link site-footer__link--accent">STATUS</a>
-            <a href="#" className="site-footer__link">SUPPORT</a>
-          </div>
-        </div>
-      </footer>
-
       {/* User Details Form Modal */}
       {showUserDetailsForm && (
         <div className="modal-overlay" onClick={() => setShowUserDetailsForm(false)}>
@@ -876,10 +858,16 @@ function App() {
         />
       )}
 
-      {activeView === 'dashboard' && resultsGrid}
+      {/* Live streaming cards while the audit runs (not once complete) */}
+      {activeView === 'dashboard' && status !== 'complete' && resultsGrid}
 
+      {/* Completed report → dashboard layout (sidebar: Pages / Website Testing Report) */}
       {activeView === 'dashboard' && status === 'complete' && finalReport && (
-        <FinalReport report={finalReport} onNewTest={handleNewTest} />
+        <ReportDashboard
+          report={finalReport.pages?.length ? finalReport : { ...finalReport, pages: completedPages }}
+          onScreenshotClick={handleScreenshotClick}
+          onNewTest={handleNewTest}
+        />
       )}
 
       {activeView === 'dashboard' && status === 'error' && (
@@ -895,6 +883,21 @@ function App() {
             <img src={modalImage} alt="Full screenshot" />
           </div>
         </div>
+      )}
+
+      {/* Footer — only shown on views with a normal scroll layout */}
+      {showFooter && (
+        <footer className="site-footer">
+          <div className="site-footer__inner">
+            <span className="site-footer__copy">© 2025 WEBTEST AI. ALL SYSTEMS OPERATIONAL.</span>
+            <div className="site-footer__links">
+              <a href="#" className="site-footer__link">PRIVACY</a>
+              <a href="#" className="site-footer__link">API DOCS</a>
+              <a href="#" className="site-footer__link site-footer__link--accent">STATUS</a>
+              <a href="#" className="site-footer__link">SUPPORT</a>
+            </div>
+          </div>
+        </footer>
       )}
     </div>
   );
