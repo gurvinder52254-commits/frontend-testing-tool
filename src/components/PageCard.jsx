@@ -49,6 +49,14 @@ const PageCard = memo(function PageCard({ page, onScreenshotClick }) {
 
   const loadStatus = page.loadStatus || 'SUCCESS';
 
+  // Indexability: from backend indexStatus, with a fallback derived from robots meta
+  const indexStatus = page.indexStatus
+    || (page.elementsInfo?.seo?.indexable === false ? 'noindex'
+        : page.elementsInfo?.seo?.indexable === true ? 'indexed' : 'unknown');
+  const robotsTip = page.robots
+    ? `robots: ${page.robots.metaRobots || '—'}${page.robots.xRobotsTag ? ` · X-Robots-Tag: ${page.robots.xRobotsTag}` : ''}`
+    : (indexStatus === 'indexed' ? 'Search engines can index this page' : 'Marked noindex (robots meta / X-Robots-Tag)');
+
   return (
     <div className="page-card-accordion-item" style={{ marginBottom: '8px', width: '100%' }}>
       {/* Accordion Header */}
@@ -118,7 +126,23 @@ const PageCard = memo(function PageCard({ page, onScreenshotClick }) {
           </div>
         </div>
 
-        <div style={{ display: 'flex', alignItems: 'center', gap: '16px', flexShrink: 0 }}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: '12px', flexShrink: 0 }}>
+          {/* Index status badge (indexed / no-index) */}
+          {indexStatus !== 'unknown' && (
+            <span title={robotsTip} style={{
+              fontSize: '13px',
+              fontWeight: 700,
+              background: indexStatus === 'indexed' ? 'rgba(6, 182, 212, 0.12)' : 'rgba(245, 158, 11, 0.14)',
+              color: indexStatus === 'indexed' ? '#22d3ee' : '#f59e0b',
+              padding: '4px 10px',
+              borderRadius: '6px',
+              border: indexStatus === 'indexed' ? '1px solid rgba(6, 182, 212, 0.3)' : '1px solid rgba(245, 158, 11, 0.35)',
+              whiteSpace: 'nowrap',
+            }}>
+              {indexStatus === 'indexed' ? '🔍 Indexed' : '🚫 No-Index'}
+            </span>
+          )}
+
           {/* Load Status Badge */}
           <span style={{
             fontSize: '13px',
