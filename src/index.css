@@ -6016,4 +6016,98 @@ body::before {
   .ai-kanban-col__body { max-height: none; }
 }
 
+/* 📄 Print / PDF Export Button & Styling */
+.export-pdf-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  background: var(--accent-gradient);
+  border: none;
+  color: #0b0e1a;
+  padding: 10px 20px;
+  border-radius: 10px;
+  font-size: 0.85rem;
+  font-weight: 800;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  cursor: pointer;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  box-shadow: 0 4px 15px rgba(0, 240, 255, 0.25);
+  margin-top: 15px;
+}
+
+.export-pdf-btn:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 6px 20px rgba(0, 240, 255, 0.4);
+}
+
+.export-pdf-btn:active {
+  transform: translateY(0);
+}
+
+.export-pdf-btn--locked {
+  background: rgba(255, 255, 255, 0.08);
+  border: 1px solid rgba(255, 255, 255, 0.15);
+  color: var(--text-muted);
+  box-shadow: none;
+  cursor: pointer;
+}
+
+.export-pdf-btn--locked:hover {
+  background: rgba(255, 255, 255, 0.12);
+  border-color: rgba(255, 255, 255, 0.25);
+  color: #fff;
+  box-shadow: none;
+  transform: none;
+}
+
+@media print {
+  body {
+    background: #ffffff !important;
+    color: #000000 !important;
+  }
+  .report-dashboard__sidebar,
+  .report-dashboard__new,
+  .report-dashboard__back,
+  .export-pdf-btn,
+  .final-report__fixes-section,
+  .new-test-btn {
+    display: none !important;
+  }
+  .report-dashboard__content {
+    margin-left: 0 !important;
+    padding: 0 !important;
+    width: 100% !important;
+  }
+  .final-report__header {
+    background: transparent !important;
+    border: none !important;
+    box-shadow: none !important;
+    color: #000000 !important;
+    padding: 0 !important;
+  }
+  .final-report__big-score {
+    border-color: #000000 !important;
+    color: #000000 !important;
+    box-shadow: none !important;
+  }
+  .final-report__meta-value,
+  .final-report__meta-label,
+  .final-report__title,
+  .final-report__url {
+    color: #000000 !important;
+  }
+  .final-report__summary-card {
+    background: #ffffff !important;
+    border: 1px solid #cccccc !important;
+    box-shadow: none !important;
+    color: #000000 !important;
+  }
+  .final-report__summary-card-title {
+    color: #000000 !important;
+    border-bottom: 1px solid #cccccc !important;
+  }
+}
+
+
 
