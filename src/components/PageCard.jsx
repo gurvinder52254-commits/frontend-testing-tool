@@ -1010,11 +1010,27 @@ const PageCard = memo(function PageCard({ page, onScreenshotClick, testDate }) {
 
               {/* All Page Links */}
               {page.brokenLinksCheck?.length > 0 && (
-                <div className="page-card__section" style={{ marginTop: 22 }}>
-                  <div style={{ fontSize: '14px', fontWeight: 800, color: '#3b82f6', marginBottom: 8, textTransform: 'uppercase' }}>
-                    🔗 All Page Links ({page.brokenLinksCheck.length} listed)
+                <div className="page-card__links-container">
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '8px', fontSize: '13px', fontWeight: 800, color: '#10b981', marginBottom: 12, letterSpacing: '0.5px', textTransform: 'uppercase' }}>
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                      <path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71" />
+                      <path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71" />
+                    </svg>
+                    All Page Links
+                    <span style={{ 
+                      fontSize: '10px', 
+                      background: 'rgba(16, 185, 129, 0.15)', 
+                      color: '#6ee7b7', 
+                      padding: '2px 8px', 
+                      borderRadius: '10px', 
+                      marginLeft: 'auto',
+                      fontWeight: '700',
+                      border: '1px solid rgba(16, 185, 129, 0.2)'
+                    }}>
+                      {page.brokenLinksCheck.length} links
+                    </span>
                   </div>
-                  <div className="page-card__scroll-list" style={{ maxHeight: '180px', overflowY: 'auto', display: 'flex', flexDirection: 'column', gap: '6px' }}>
+                  <div className="page-card__scroll-list" style={{ maxHeight: '320px' }}>
                     {page.brokenLinksCheck.map((link, idx) => {
                       const isDup = link.isDuplicate || link.reason === 'Duplicate Link';
                       const statusColor = link.status === 200 ? (isDup ? '#8b5cf6' : '#10b981')
@@ -1023,33 +1039,28 @@ const PageCard = memo(function PageCard({ page, onScreenshotClick, testDate }) {
                             : link.status === 404 ? '#ef4444'
                               : link.status >= 400 ? '#f59e0b'
                                 : '#3b82f6';
-                      const displayUrl = link.href.length > 55 ? link.href.substring(0, 52) + '...' : link.href;
 
                       return (
-                        <div key={idx} title={link.href} style={{
-                          display: 'flex', justifyContent: 'space-between', alignItems: 'center',
-                          padding: '9px 12px', background: isDup ? 'rgba(139, 92, 246, 0.15)' : 'rgba(59, 130, 246, 0.06)',
-                          borderRadius: '4px', fontSize: '13px', gap: '8px',
-                          borderLeft: `3px solid ${statusColor}`,
-                        }}>
+                        <div key={idx} title={link.href} className="page-card__link-item" style={{ borderLeft: `4px solid ${statusColor}` }}>
                           <div style={{ flex: 1, minWidth: 0 }}>
-                            <div style={{ color: '#e2e8f0', fontWeight: 600, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+                            <div style={{ color: '#fff', fontWeight: 700, fontSize: '13px', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
                               {link.text || 'No Text Found'}
                             </div>
-                            <div style={{ color: 'var(--text-muted)', fontSize: '12px', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', marginTop: '2px' }}>
-                              {displayUrl}
+                            <div style={{ color: 'var(--text-muted)', fontSize: '11px', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', marginTop: '4px', fontFamily: 'monospace', opacity: 0.65 }}>
+                              {link.href}
                             </div>
                           </div>
                           <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-end', flexShrink: 0 }}>
                             <span style={{
-                              display: 'inline-block', padding: '2px 8px', borderRadius: '4px',
-                              fontSize: '12px', fontWeight: 700, color: '#fff',
-                              background: statusColor, minWidth: '36px', textAlign: 'center'
+                              display: 'inline-block', padding: '2px 6px', borderRadius: '4px',
+                              fontSize: '10px', fontWeight: 800, color: '#fff',
+                              background: statusColor, minWidth: '34px', textAlign: 'center',
+                              textTransform: 'uppercase'
                             }}>
                               {link.status === 200 ? (isDup ? 'DUP' : 'OK') : (link.status || 'ERR')}
                             </span>
-                            <span style={{ fontSize: '11px', color: isDup ? '#c084fc' : 'var(--text-muted)', marginTop: '2px', fontWeight: isDup ? 600 : 400 }}>
-                              {link.reason}
+                            <span style={{ fontSize: '10px', color: 'var(--text-muted)', marginTop: '4px', textAlign: 'right', opacity: 0.65 }}>
+                              {link.reason || (isDup ? 'Duplicate Link' : 'Discovered')}
                             </span>
                           </div>
                         </div>
@@ -1217,20 +1228,86 @@ const PageCard = memo(function PageCard({ page, onScreenshotClick, testDate }) {
                 (page.elementsInfo?.broken?.links?.length > 0) ||
                 (page.consoleErrors?.length > 0) ||
                 (page.networkErrors?.length > 0)) && (
-                  <div className="page-card__section" style={{ marginTop: 22 }}>
-                    <div style={{ fontSize: '14px', fontWeight: 800, color: '#ef4444', marginBottom: 8, textTransform: 'uppercase' }}>⚠️ Quality Audit / Errors</div>
-                    <div className="page-card__scroll-list" style={{ maxHeight: '150px', overflowY: 'auto', display: 'flex', flexDirection: 'column', gap: '6px' }}>
-                      {page.consoleErrors?.map((err, idx) => (
-                        <div key={`err-${idx}`} style={{ fontSize: '13px', color: '#ef4444', padding: '7px 11px', background: 'rgba(239, 68, 68, 0.1)', borderRadius: '4px' }}>
-                          🚫 Console Error: {err.text || err.message || err}
-                        </div>
-                      ))}
+                  <div className="page-card__quality-container">
+                    <div style={{ 
+                      display: 'flex', 
+                      alignItems: 'center', 
+                      gap: '8px', 
+                      fontSize: '13px', 
+                      fontWeight: 800, 
+                      color: '#f87171', 
+                      marginBottom: '12px', 
+                      textTransform: 'uppercase',
+                      letterSpacing: '0.5px'
+                    }}>
+                      <svg style={{ width: '16px', height: '16px', fill: 'currentColor' }} viewBox="0 0 20 20">
+                        <path fillRule="evenodd" d="M8.257 3.099c.765-1.36 2.722-1.36 3.486 0l5.58 9.92c.75 1.334-.213 2.98-1.742 2.98H4.42c-1.53 0-2.493-1.646-1.743-2.98l5.58-9.92zM11 13a1 1 0 11-2 0 1 1 0 012 0zm-1-8a1 1 0 00-1 1v3a1 1 0 002 0V6a1 1 0 00-1-1z" clipRule="evenodd" />
+                      </svg>
+                      Quality Audit / Errors
+                      <span style={{ 
+                        fontSize: '10px', 
+                        background: 'rgba(239, 68, 68, 0.15)', 
+                        color: '#fca5a5', 
+                        padding: '2px 8px', 
+                        borderRadius: '10px', 
+                        marginLeft: 'auto',
+                        fontWeight: '700',
+                        border: '1px solid rgba(239, 68, 68, 0.2)'
+                      }}>
+                        {(page.consoleErrors?.length || 0) + (page.networkErrors?.length || 0)} issues
+                      </span>
+                    </div>
+                    <div className="page-card__scroll-list">
+                      {page.consoleErrors?.map((err, idx) => {
+                        const errMsg = err.text || err.message || err;
+                        return (
+                          <div key={`err-${idx}`} className="page-card__error-item page-card__error-item--console">
+                            <div className="page-card__error-icon">
+                              <svg style={{ width: '14px', height: '14px', fill: 'none', stroke: 'currentColor', strokeWidth: 2 }} viewBox="0 0 24 24">
+                                <path strokeLinecap="round" strokeLinejoin="round" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
+                              </svg>
+                            </div>
+                            <div className="page-card__error-content">
+                              <div className="page-card__error-title">Console Error</div>
+                              <div className="page-card__error-msg">{errMsg}</div>
+                              {err.location && (
+                                <div className="page-card__error-meta" style={{ opacity: 0.5, fontFamily: 'monospace', wordBreak: 'break-all' }}>
+                                  Location: {err.location}
+                                </div>
+                              )}
+                            </div>
+                          </div>
+                        );
+                      })}
 
-                      {page.networkErrors?.map((err, idx) => (
-                        <div key={`net-${idx}`} style={{ fontSize: '13px', color: '#f59e0b', padding: '7px 11px', background: 'rgba(245, 158, 11, 0.1)', borderRadius: '4px' }}>
-                          🌐 {err.type === 'HTTP_ERROR' ? `HTTP ${err.status}: ${err.statusText}` : `Network: ${err.errorText}`}
-                        </div>
-                      ))}
+                      {page.networkErrors?.map((err, idx) => {
+                        const isHttp = err.type === 'HTTP_ERROR' || err.status;
+                        const title = isHttp ? `HTTP ${err.status}: Request Failed` : 'Network Error';
+                        const message = isHttp 
+                          ? (err.statusText || 'Failed to load')
+                          : (err.errorText || 'net::ERR_ABORTED');
+
+                        return (
+                          <div key={`net-${idx}`} className="page-card__error-item page-card__error-item--network">
+                            <div className="page-card__error-icon">
+                              <svg style={{ width: '14px', height: '14px', fill: 'none', stroke: 'currentColor', strokeWidth: 2 }} viewBox="0 0 24 24">
+                                <circle cx="12" cy="12" r="10" />
+                                <line x1="12" y1="16" x2="12" y2="12" />
+                                <line x1="12" y1="8" x2="12.01" y2="8" />
+                              </svg>
+                            </div>
+                            <div className="page-card__error-content">
+                              <div className="page-card__error-title">{title}</div>
+                              <div className="page-card__error-msg">{message}</div>
+                              {err.url && (
+                                <div className="page-card__error-meta" style={{ opacity: 0.5, fontFamily: 'monospace', wordBreak: 'break-all' }}>
+                                  URL: {err.url}
+                                </div>
+                              )}
+                            </div>
+                          </div>
+                        );
+                      })}
                     </div>
                   </div>
                 )}
@@ -1259,99 +1336,120 @@ const PageCard = memo(function PageCard({ page, onScreenshotClick, testDate }) {
                 };
                 const getTypeColor = (type) => {
                   const map = {
-                    document: '#3b82f6', stylesheet: '#a855f7', script: '#f59e0b',
-                    image: '#10b981', font: '#ec4899', xhr: '#06b6d4',
-                    fetch: '#06b6d4', media: '#f97316', other: '#6b7280',
+                    document: '#38bdf8', // sky blue
+                    stylesheet: '#c084fc', // purple
+                    script: '#fbbf24', // amber
+                    image: '#34d399', // emerald
+                    font: '#f472b6', // pink
+                    xhr: '#2dd4bf', // teal
+                    fetch: '#2dd4bf', // teal
+                    ping: '#94a3b8', // slate
+                    media: '#f97316', // orange
                   };
-                  return map[type] || '#6b7280';
+                  return map[String(type).toLowerCase()] || '#94a3b8';
                 };
 
                 return (
-                  <div className="page-card__section" style={{ marginTop: 22 }}>
-                    <div style={{ fontSize: '14px', fontWeight: 800, color: '#06b6d4', marginBottom: 10, textTransform: 'uppercase' }}>
-                      🌐 Network Activity
-                    </div>
-
-                    <div style={{
-                      display: 'flex', flexWrap: 'wrap', gap: '8px', marginBottom: 12,
-                      padding: '13px 15px', background: 'rgba(6, 182, 212, 0.06)',
-                      borderRadius: '8px', border: '1px solid rgba(6, 182, 212, 0.15)'
+                  <div className="page-card__network-container">
+                    <div style={{ 
+                      display: 'flex', 
+                      justifyContent: 'space-between', 
+                      alignItems: 'center', 
+                      marginBottom: '12px' 
                     }}>
-                      <div style={{ flex: '1 1 auto', textAlign: 'center', minWidth: '70px' }}>
-                        <div style={{ fontSize: '12px', color: 'var(--text-muted)', textTransform: 'uppercase', fontWeight: 700 }}>Requests</div>
-                        <div style={{ fontSize: '16px', fontWeight: 800, color: '#06b6d4' }}>{summary.totalRequests}</div>
+                      <div style={{ display: 'flex', alignItems: 'center', gap: '8px', fontSize: '13px', fontWeight: 800, color: '#06b6d4', textTransform: 'uppercase', letterSpacing: '0.5px' }}>
+                        <svg style={{ width: '16px', height: '16px', fill: 'currentColor' }} viewBox="0 0 20 20">
+                          <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM9.436 3.003a7.759 7.759 0 011.128 0c1.895.12 3.518 1.455 3.992 3.284H9.436V3.003zM7.8 6.287c.394-1.921 1.7-3.23 3.3-3.284v3.284H7.8zM4.032 6.287c.465-1.8 2.05-3.08 3.868-3.26v3.26H4.032zM3.07 7.787a7.734 7.734 0 000 4.426h2.784V7.787H3.07zm4.284 0v4.426H12V7.787H7.354zm6.076 0h2.784a7.734 7.734 0 000-4.426H13.43v4.426zm3.5 1.5a7.747 7.747 0 010 1.426h-3.5V9.287h3.5zm-5 0v1.426H7.8V9.287h4.2zm-5.7 0v1.426H3.07V9.287h3.43zm-.4 2.926c-.465 1.8-2.05 3.08-3.868 3.26v-3.26h3.868zm1.474 0h3.3v3.284c-1.6-.054-2.906-1.363-3.3-3.284zm4.826 0h4.292a7.759 7.759 0 01-1.128 0c-1.895-.12-3.518-1.455-3.992-3.284h.828zm5.7 0h2.784a7.734 7.734 0 010 4.426H13.43v-4.426z" clipRule="evenodd" />
+                        </svg>
+                        Network Activity
                       </div>
-                      <div style={{ flex: '1 1 auto', textAlign: 'center', minWidth: '70px' }}>
-                        <div style={{ fontSize: '12px', color: 'var(--text-muted)', textTransform: 'uppercase', fontWeight: 700 }}>Transferred</div>
-                        <div style={{ fontSize: '16px', fontWeight: 800, color: '#a855f7' }}>{formatSize(summary.totalTransferred)}</div>
-                      </div>
-                      <div style={{ flex: '1 1 auto', textAlign: 'center', minWidth: '70px' }}>
-                        <div style={{ fontSize: '12px', color: 'var(--text-muted)', textTransform: 'uppercase', fontWeight: 700 }}>DOMContent</div>
-                        <div style={{ fontSize: '16px', fontWeight: 800, color: '#3b82f6' }}>{formatTime(summary.domContentLoaded)}</div>
-                      </div>
-                      <div style={{ flex: '1 1 auto', textAlign: 'center', minWidth: '70px' }}>
-                        <div style={{ fontSize: '12px', color: 'var(--text-muted)', textTransform: 'uppercase', fontWeight: 700 }}>Load</div>
-                        <div style={{ fontSize: '16px', fontWeight: 800, color: '#f59e0b' }}>{formatTime(summary.loadTime)}</div>
-                      </div>
-                      <div style={{ flex: '1 1 auto', textAlign: 'center', minWidth: '70px' }}>
-                        <div style={{ fontSize: '12px', color: 'var(--text-muted)', textTransform: 'uppercase', fontWeight: 700 }}>Finish</div>
-                        <div style={{ fontSize: '16px', fontWeight: 800, color: '#10b981' }}>{formatTime(summary.finishTime)}</div>
+                      <div style={{ display: 'flex', alignItems: 'center', gap: '6px', fontSize: '9px', fontWeight: 800, color: '#10b981', background: 'rgba(16, 185, 129, 0.1)', padding: '2.5px 8px', borderRadius: '12px', border: '1px solid rgba(16, 185, 129, 0.2)', textTransform: 'uppercase', letterSpacing: '0.5px' }}>
+                        <span className="live-stream-dot" style={{ display: 'inline-block', width: '5px', height: '5px', borderRadius: '50%', background: '#10b981' }}></span>
+                        Live Stream
                       </div>
                     </div>
 
-                    <div style={{
-                      display: 'grid', gridTemplateColumns: '2fr 50px 65px 60px 55px',
-                      gap: '6px', padding: '9px 12px', background: 'rgba(255,255,255,0.05)',
-                      borderRadius: '6px 6px 0 0', fontSize: '12px', fontWeight: 700,
-                      color: 'var(--text-muted)', textTransform: 'uppercase', letterSpacing: '0.5px'
-                    }}>
-                      <span>Name</span>
-                      <span style={{ textAlign: 'center' }}>Status</span>
-                      <span style={{ textAlign: 'center' }}>Type</span>
-                      <span style={{ textAlign: 'right' }}>Size</span>
-                      <span style={{ textAlign: 'right' }}>Time</span>
+                    <div className="page-card__network-stats">
+                      <div className="page-card__network-stat-col">
+                        <div className="page-card__network-stat-label">Requests</div>
+                        <div className="page-card__network-stat-value" style={{ color: '#10b981' }}>{summary.totalRequests}</div>
+                      </div>
+                      <div className="page-card__network-stat-col">
+                        <div className="page-card__network-stat-label">Transferred</div>
+                        <div className="page-card__network-stat-value" style={{ color: '#a855f7' }}>{formatSize(summary.totalTransferred)}</div>
+                      </div>
+                      <div className="page-card__network-stat-col">
+                        <div className="page-card__network-stat-label">DOMContent</div>
+                        <div className="page-card__network-stat-value" style={{ color: '#38bdf8' }}>{formatTime(summary.domContentLoaded)}</div>
+                      </div>
+                      <div className="page-card__network-stat-col">
+                        <div className="page-card__network-stat-label">Load</div>
+                        <div className="page-card__network-stat-value" style={{ color: '#ef4444' }}>{formatTime(summary.loadTime)}</div>
+                      </div>
+                      <div className="page-card__network-stat-col">
+                        <div className="page-card__network-stat-label">Finish</div>
+                        <div className="page-card__network-stat-value" style={{ color: '#10b981' }}>{formatTime(summary.finishTime)}</div>
+                      </div>
                     </div>
 
-                    <div style={{ maxHeight: '200px', overflowY: 'auto', display: 'flex', flexDirection: 'column' }}>
-                      {net.requests.map((req, idx) => (
-                        <div key={idx} title={req.url} style={{
-                          display: 'grid', gridTemplateColumns: '2fr 50px 65px 60px 55px',
-                          gap: '6px', padding: '8px 11px', fontSize: '13px',
-                          borderBottom: '1px solid rgba(255,255,255,0.03)',
-                          background: idx % 2 === 0 ? 'transparent' : 'rgba(255,255,255,0.015)',
-                          transition: 'background 0.15s',
-                          cursor: 'default',
-                        }}
-                          onMouseEnter={e => e.currentTarget.style.background = 'rgba(6, 182, 212, 0.08)'}
-                          onMouseLeave={e => e.currentTarget.style.background = idx % 2 === 0 ? 'transparent' : 'rgba(255,255,255,0.015)'}
-                        >
-                          <span style={{ overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', color: '#e2e8f0' }}>
-                            {req.name || '—'}
-                          </span>
-                          <span style={{ textAlign: 'center' }}>
-                            <span style={{
-                              display: 'inline-block', padding: '1px 6px', borderRadius: '3px', fontSize: '12px', fontWeight: 700,
-                              color: '#fff', background: getStatusColor(req.status), minWidth: '28px', textAlign: 'center'
-                            }}>
-                              {req.status || '—'}
-                            </span>
-                          </span>
-                          <span style={{ textAlign: 'center' }}>
-                            <span style={{
-                              display: 'inline-block', padding: '1px 5px', borderRadius: '3px', fontSize: '11px', fontWeight: 600,
-                              color: getTypeColor(req.type), background: `${getTypeColor(req.type)}15`, textTransform: 'lowercase'
-                            }}>
-                              {req.type || '—'}
-                            </span>
-                          </span>
-                          <span style={{ textAlign: 'right', color: 'var(--text-muted)' }}>
-                            {formatSize(req.size)}
-                          </span>
-                          <span style={{ textAlign: 'right', color: req.time > 1000 ? '#f59e0b' : 'var(--text-muted)' }}>
-                            {formatTime(req.time)}
-                          </span>
-                        </div>
-                      ))}
+                    <div className="page-card__network-table">
+                      <div className="page-card__network-header">
+                        <span>Name</span>
+                        <span style={{ textAlign: 'center' }}>Status</span>
+                        <span style={{ textAlign: 'center' }}>Type</span>
+                        <span style={{ textAlign: 'right' }}>Size</span>
+                        <span style={{ textAlign: 'right' }}>Time</span>
+                      </div>
+
+                      <div className="page-card__network-list">
+                        {net.requests.map((req, idx) => {
+                          const status = req.status;
+                          const isSuccess = status >= 200 && status < 300;
+                          const isWarning = status >= 300 && status < 400;
+                          const isError = status >= 400 || !status;
+                          
+                          let statusClass = '';
+                          if (status) {
+                            if (isSuccess) statusClass = 'success';
+                            else if (isWarning) statusClass = 'warning';
+                            else if (isError) statusClass = 'error';
+                          }
+
+                          const typeColor = getTypeColor(req.type);
+
+                          return (
+                            <div key={idx} className="page-card__network-row" title={req.url}>
+                              <span className="page-card__network-url">
+                                {req.name || '—'}
+                              </span>
+                              <span style={{ textAlign: 'center' }}>
+                                <span className={`page-card__badge page-card__badge--status ${statusClass}`}>
+                                  {status || '—'}
+                                </span>
+                              </span>
+                              <span style={{ textAlign: 'center' }}>
+                                <span className="page-card__badge page-card__badge--type" style={{
+                                  color: typeColor,
+                                  background: `${typeColor}12`,
+                                  border: `1px solid ${typeColor}24`
+                                }}>
+                                  {req.type || '—'}
+                                </span>
+                              </span>
+                              <span style={{ textAlign: 'right', color: 'rgba(255, 255, 255, 0.45)', fontFamily: 'monospace' }}>
+                                {formatSize(req.size)}
+                              </span>
+                              <span style={{ 
+                                textAlign: 'right', 
+                                color: req.time > 1000 ? '#f59e0b' : 'rgba(255, 255, 255, 0.45)',
+                                fontFamily: 'monospace'
+                              }}>
+                                {formatTime(req.time)}
+                              </span>
+                            </div>
+                          );
+                        })}
+                      </div>
                     </div>
                   </div>
                 );
