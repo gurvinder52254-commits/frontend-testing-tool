@@ -204,12 +204,42 @@ const PageCard = memo(function PageCard({ page, onScreenshotClick }) {
           <div className="page-card" style={{ height: 'auto', border: 'none', background: 'transparent', backdropFilter: 'none', animation: 'none', padding: 0 }}>
             {/* Desktop + Mobile — FULL screenshots, each with its own scroll box */}
             {(desktopSrc || mobileSrc) ? (
-              <div style={{ display: 'flex', gap: 12, alignItems: 'flex-start', marginBottom: 4 }}>
+              <div style={{ display: 'flex', gap: 16, alignItems: 'flex-start', marginBottom: 4, flexWrap: 'wrap' }}>
                 {/* Desktop (left, wider) */}
-                <div style={{ flex: '2 1 0', minWidth: 0 }}>
-                  <div style={thumbLabelStyle}>💻 Desktop</div>
+                <div style={{ flex: '2 1 500px', minWidth: 0 }}>
+                  {/* Mockup Header */}
+                  <div style={{
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'space-between',
+                    background: 'rgba(30, 41, 59, 0.7)',
+                    border: '1px solid rgba(255, 255, 255, 0.08)',
+                    borderBottom: 'none',
+                    borderRadius: '12px 12px 0 0',
+                    padding: '12px 20px',
+                  }}>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '8px', fontSize: '11px', fontWeight: 800, color: 'var(--text-secondary)', letterSpacing: '0.08em', textTransform: 'uppercase' }}>
+                      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                        <rect x="2" y="3" width="20" height="14" rx="2" ry="2" />
+                        <line x1="8" y1="21" x2="16" y2="21" />
+                        <line x1="12" y1="17" x2="12" y2="21" />
+                      </svg>
+                      Desktop View
+                    </div>
+                    {/* Window Controls */}
+                    <div style={{ display: 'flex', gap: '6px' }}>
+                      <span style={{ width: '8px', height: '8px', borderRadius: '50%', background: '#ff5f56' }}></span>
+                      <span style={{ width: '8px', height: '8px', borderRadius: '50%', background: '#ffbd2e' }}></span>
+                      <span style={{ width: '8px', height: '8px', borderRadius: '50%', background: '#27c93f' }}></span>
+                    </div>
+                  </div>
+
                   <div style={{ position: 'relative' }}>
-                    <div style={thumbScrollStyle}>
+                    <div style={{
+                      ...thumbScrollStyle,
+                      borderRadius: '0 0 12px 12px',
+                      borderTop: 'none',
+                    }}>
                       {desktopSrc ? (
                         <img
                           src={desktopSrc}
@@ -227,28 +257,94 @@ const PageCard = memo(function PageCard({ page, onScreenshotClick }) {
 
                     {/* Score Badge + Source Tag pinned to the box (don't scroll with the image) */}
                     {score > 0 && (
-                      <div className={`page-card__score-badge page-card__score-badge--${getScoreClass(score)}`}>
+                      <div className={`page-card__score-badge page-card__score-badge--${getScoreClass(score)}`} style={{ top: '16px', right: '16px' }}>
                         {score}
                       </div>
-                    )}
-                    {page.source && (
-                      <div className="page-card__source-tag">{page.source}</div>
                     )}
                   </div>
                 </div>
 
                 {/* Mobile (right, narrower) */}
-                <div style={{ flex: '1 1 0', minWidth: 0 }}>
-                  <div style={thumbLabelStyle}>📱 Mobile</div>
-                  <div style={thumbScrollStyle}>
+                <div style={{ flex: '1 1 280px', minWidth: 0 }}>
+                  {/* Mockup Header */}
+                  <div style={{
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'space-between',
+                    background: 'rgba(30, 41, 59, 0.7)',
+                    border: '1px solid rgba(255, 255, 255, 0.08)',
+                    borderBottom: 'none',
+                    borderRadius: '12px 12px 0 0',
+                    padding: '12px 20px',
+                  }}>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '8px', fontSize: '11px', fontWeight: 800, color: 'var(--text-secondary)', letterSpacing: '0.08em', textTransform: 'uppercase' }}>
+                      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                        <rect x="5" y="2" width="14" height="20" rx="2" ry="2" />
+                        <line x1="12" y1="18" x2="12.01" y2="18" />
+                      </svg>
+                      Mobile View
+                    </div>
+                    {/* Ellipsis Menu */}
+                    <div style={{ display: 'flex', flexDirection: 'column', gap: '3px', cursor: 'pointer' }}>
+                      <span style={{ width: '3px', height: '3px', borderRadius: '50%', background: '#94a3b8' }}></span>
+                      <span style={{ width: '3px', height: '3px', borderRadius: '50%', background: '#94a3b8' }}></span>
+                      <span style={{ width: '3px', height: '3px', borderRadius: '50%', background: '#94a3b8' }}></span>
+                    </div>
+                  </div>
+
+                  <div style={{
+                    ...thumbScrollStyle,
+                    borderRadius: '0 0 12px 12px',
+                    borderTop: 'none',
+                    display: 'flex',
+                    justifyContent: 'center',
+                    alignItems: 'center',
+                    padding: '24px 0',
+                    background: 'rgba(15, 23, 42, 0.6)',
+                  }}>
                     {mobileSrc ? (
-                      <img
-                        src={mobileSrc}
-                        alt={`Mobile view — ${page.title || page.url}`}
-                        onClick={() => onScreenshotClick?.(mobileSrc)}
-                        style={{ width: '100%', height: 'auto', display: 'block', cursor: 'pointer' }}
-                        loading="lazy"
-                      />
+                      /* Smartphone Mockup Frame */
+                      <div style={{
+                        width: '200px',
+                        height: '380px',
+                        border: '12px solid #1e293b',
+                        borderRadius: '32px',
+                        background: '#0f172a',
+                        overflow: 'hidden',
+                        boxShadow: '0 20px 50px rgba(0, 0, 0, 0.4)',
+                        position: 'relative',
+                        display: 'flex',
+                        flexDirection: 'column',
+                      }}>
+                        {/* Notch / Speaker bar */}
+                        <div style={{
+                          width: '60px',
+                          height: '14px',
+                          background: '#1e293b',
+                          borderRadius: '0 0 12px 12px',
+                          position: 'absolute',
+                          top: 0,
+                          left: '50%',
+                          transform: 'translateX(-50%)',
+                          zIndex: 10,
+                        }} />
+                        
+                        {/* Scrollable screenshot inner view */}
+                        <div style={{
+                          flex: 1,
+                          overflowY: 'auto',
+                          overflowX: 'hidden',
+                          scrollbarWidth: 'none',
+                        }}>
+                          <img
+                            src={mobileSrc}
+                            alt={`Mobile view — ${page.title || page.url}`}
+                            onClick={() => onScreenshotClick?.(mobileSrc)}
+                            style={{ width: '100%', height: 'auto', display: 'block', cursor: 'pointer' }}
+                            loading="lazy"
+                          />
+                        </div>
+                      </div>
                     ) : (
                       <div
                         className="live-browser__placeholder"

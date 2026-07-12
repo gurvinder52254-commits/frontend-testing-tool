@@ -253,7 +253,7 @@ const PlansPage = () => {
       color: '#fff',
       fontFamily: 'system-ui, -apple-system, sans-serif'
     }}>
-      
+
       {/* HEADER SECTION */}
       <div style={{ textAlign: 'center', marginBottom: '50px' }}>
         <h1 style={{
@@ -396,7 +396,7 @@ const PlansPage = () => {
         marginBottom: '60px',
         alignItems: 'stretch'
       }}>
-        
+
         {/* CARD 1: FREE TRIAL */}
         <div style={{
           background: '#151c2c',
@@ -472,7 +472,7 @@ const PlansPage = () => {
               transform: isPro ? 'scale(1.02)' : 'none',
               zIndex: isPro ? 2 : 1
             }}>
-              
+
               {/* Center aligned Popular Choice badge */}
               {isPro && (
                 <div style={{

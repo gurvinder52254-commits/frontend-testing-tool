@@ -134,7 +134,7 @@ function App() {
   useEffect(() => {
     const handleHashChange = async () => {
       const hash = window.location.hash;
-      
+
       if (!isLoggedIn) return; // wait for login to fetch auth-protected state
 
       if (hash.startsWith('#/report/')) {
@@ -147,7 +147,7 @@ function App() {
         testIdRef.current = id;
         setTestId(id);
         setActiveView('dashboard');
-        
+
         try {
           const res = await fetch(`${API_URL}/test/${id}`, { headers: authHeaders });
           if (res.ok) {
@@ -358,7 +358,7 @@ function App() {
         if (data.success && data.jobId) {
           const jobId = data.jobId;
           addLog(`Scan job queued (Job ID: ${jobId}). Waiting for worker...`, 'info');
-          
+
           const pollScanStatus = async () => {
             try {
               const statusRes = await fetch(`${API_URL}/scan-status/${jobId}`, {
@@ -867,10 +867,10 @@ function App() {
 
       {/* === URL SELECTION SCREEN === */}
       {activeView === 'dashboard' && status === 'url_selection' && (
-        <UrlSelection 
-          initialUrls={discoveredUrls} 
+        <UrlSelection
+          initialUrls={discoveredUrls}
           baseUrl={frontendUrl}
-          onContinue={handleUrlSelectionContinue} 
+          onContinue={handleUrlSelectionContinue}
           onBack={handleNewTest}
         />
       )}
@@ -959,7 +959,7 @@ function App() {
               Scan perform karne ke liye aapke paas credits available nahi hain. Apne limits ko extend karne aur test run karne ke liye premium subscription select karein.
             </p>
             <div style={{ display: 'flex', gap: '12px', justifyContent: 'center' }}>
-              <button 
+              <button
                 onClick={() => {
                   setShowCreditsModal(false);
                   window.location.hash = '#/plans';
@@ -981,7 +981,7 @@ function App() {
               >
                 View Plans
               </button>
-              <button 
+              <button
                 onClick={() => setShowCreditsModal(false)}
                 style={{
                   background: 'rgba(255, 255, 255, 0.05)',

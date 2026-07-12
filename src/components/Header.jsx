@@ -27,7 +27,7 @@ const Header = ({ status, wsConnected, activeView, onNavigate }) => {
           </svg>
         </div>
         <div>
-          <div className="header__title">WebTest AI</div>
+          <div className="header__title">WebTest</div>
           <div className="header__subtitle">Intelligent Testing Platform</div>
         </div>
       </div>
@@ -51,7 +51,6 @@ const Header = ({ status, wsConnected, activeView, onNavigate }) => {
         >
           Plans
         </span>
-        <span className="header__nav-link">Settings</span>
       </nav>
 
       <div className="header__right">
@@ -69,7 +68,7 @@ const Header = ({ status, wsConnected, activeView, onNavigate }) => {
               onMouseEnter={(e) => e.currentTarget.style.boxShadow = '0 0 10px rgba(0, 240, 255, 0.5)'}
               onMouseLeave={(e) => e.currentTarget.style.boxShadow = 'none'}
             />
-            <span 
+            <span
               className={`header__user-name ${activeView === 'profile' ? 'active' : ''}`}
               onClick={() => handleNavigate('profile')}
               style={{ cursor: 'pointer', color: activeView === 'profile' ? 'var(--accent-secondary)' : '#fff' }}
@@ -133,7 +132,7 @@ const Header = ({ status, wsConnected, activeView, onNavigate }) => {
                 onClick={() => handleNavigate('profile')}
                 style={{ cursor: 'pointer' }}
               />
-              <div 
+              <div
                 className="header__user-info-mobile"
                 onClick={() => handleNavigate('profile')}
                 style={{ cursor: 'pointer' }}
