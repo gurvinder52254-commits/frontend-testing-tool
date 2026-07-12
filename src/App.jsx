@@ -114,6 +114,9 @@ function App() {
 
   // Connect WebSocket on mount
   useEffect(() => {
+    if ('scrollRestoration' in window.history) {
+      window.history.scrollRestoration = 'manual';
+    }
     connectWebSocket();
     return () => {
       if (wsRef.current) {
@@ -121,6 +124,11 @@ function App() {
       }
     };
   }, []);
+
+  // Scroll to top on active view navigation
+  useEffect(() => {
+    window.scrollTo(0, 0);
+  }, [activeView]);
 
   // Handle Hash Routing and state restoration on mount/refresh/hashchange
   useEffect(() => {

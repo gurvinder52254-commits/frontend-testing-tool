@@ -386,7 +386,7 @@ function ReportsPage({ onSelectProject }) {
       </div>
 
       {/* ── Subtitle Recent Activity Header ── */}
-      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', margin: '40px 0 20px', borderBottom: '1px solid rgba(255,255,255,0.06)', paddingBottom: '12px' }}>
+      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', margin: '24px 0 12px', borderBottom: '1px solid rgba(255,255,255,0.06)', paddingBottom: '12px' }}>
         <span style={{ fontSize: '0.75rem', fontWeight: 800, color: 'var(--text-muted)', letterSpacing: '0.1em', textTransform: 'uppercase' }}>RECENT ACTIVITY</span>
         <span style={{ fontSize: '0.75rem', fontWeight: 700, color: '#00F0FF', cursor: 'pointer' }} onClick={() => refetch()}>See All</span>
       </div>
@@ -403,7 +403,7 @@ function ReportsPage({ onSelectProject }) {
           <div
             ref={parentRef}
             style={{
-              height: '55vh',
+              height: '68vh',
               overflowY: 'auto',
               contain: 'strict',
               scrollbarWidth: 'thin',
