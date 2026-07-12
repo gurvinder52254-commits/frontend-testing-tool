@@ -661,6 +661,7 @@ export default function ReportDashboard({ report, onScreenshotClick, pagesTitle,
               pages={pages}
               onScreenshotClick={onScreenshotClick}
               title={pagesTitle || `Tested Pages (${pages.length})`}
+              testDate={report.testDate || report.test_date || report.createdAt}
               fillHeight
             />
           ) : (

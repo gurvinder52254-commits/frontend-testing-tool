@@ -6646,3 +6646,18 @@ body::before {
     border-bottom: 1px solid #cccccc !important;
   }
 }
+
+/* Metadata Grid Helper */
+.metadata-grid {
+  display: grid;
+  grid-template-columns: 2fr 1fr 1fr;
+}
+
+@media (max-width: 900px) {
+  .metadata-grid {
+    grid-template-columns: 1fr !important;
+  }
+  .metadata-grid > div {
+    grid-column: span 1 !important;
+  }
+}

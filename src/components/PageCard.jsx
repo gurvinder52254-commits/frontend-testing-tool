@@ -18,7 +18,26 @@ function getScoreFillColor(score) {
   return '#ef4444';
 }
 
-const PageCard = memo(function PageCard({ page, onScreenshotClick }) {
+function getRelativeTime(isoString) {
+  if (!isoString) return '2 MINS AGO';
+  try {
+    const diffMs = Date.now() - new Date(isoString).getTime();
+    const diffMins = Math.floor(diffMs / 60000);
+    if (diffMins < 1) return 'JUST NOW';
+    if (diffMins === 1) return '1 MIN AGO';
+    if (diffMins < 60) return `${diffMins} MINS AGO`;
+    const diffHours = Math.floor(diffMins / 60);
+    if (diffHours === 1) return '1 HOUR AGO';
+    if (diffHours < 24) return `${diffHours} HOURS AGO`;
+    const diffDays = Math.floor(diffHours / 24);
+    if (diffDays === 1) return '1 DAY AGO';
+    return `${diffDays} DAYS AGO`;
+  } catch (_) {
+    return '2 MINS AGO';
+  }
+}
+
+const PageCard = memo(function PageCard({ page, onScreenshotClick, testDate }) {
   const [isCardExpanded, setIsCardExpanded] = useState(false);
   const [expanded, setExpanded] = useState(false);
 
@@ -52,7 +71,7 @@ const PageCard = memo(function PageCard({ page, onScreenshotClick }) {
   // Indexability: from backend indexStatus, with a fallback derived from robots meta
   const indexStatus = page.indexStatus
     || (page.elementsInfo?.seo?.indexable === false ? 'noindex'
-        : page.elementsInfo?.seo?.indexable === true ? 'indexed' : 'unknown');
+      : page.elementsInfo?.seo?.indexable === true ? 'indexed' : 'unknown');
   const robotsTip = page.robots
     ? `robots: ${page.robots.metaRobots || '—'}${page.robots.xRobotsTag ? ` · X-Robots-Tag: ${page.robots.xRobotsTag}` : ''}`
     : (indexStatus === 'indexed' ? 'Search engines can index this page' : 'Marked noindex (robots meta / X-Robots-Tag)');
@@ -60,7 +79,7 @@ const PageCard = memo(function PageCard({ page, onScreenshotClick }) {
   return (
     <div className="page-card-accordion-item" style={{ marginBottom: '8px', width: '100%' }}>
       {/* Accordion Header */}
-      <div 
+      <div
         className={`page-card-accordion-header ${isCardExpanded ? 'expanded' : ''}`}
         onClick={() => setIsCardExpanded(!isCardExpanded)}
         style={{
@@ -101,7 +120,7 @@ const PageCard = memo(function PageCard({ page, onScreenshotClick }) {
               {page.source}
             </span>
           )}
-          
+
           <div style={{ flex: 1, minWidth: 0 }}>
             <div style={{
               color: '#fff',
@@ -189,7 +208,7 @@ const PageCard = memo(function PageCard({ page, onScreenshotClick }) {
 
       {/* Accordion Body details rendering conditionally */}
       {isCardExpanded && (
-        <div 
+        <div
           className="page-card-accordion-body"
           style={{
             background: 'rgba(15, 23, 42, 0.45)', // matching dark glass body
@@ -328,7 +347,7 @@ const PageCard = memo(function PageCard({ page, onScreenshotClick }) {
                           transform: 'translateX(-50%)',
                           zIndex: 10,
                         }} />
-                        
+
                         {/* Scrollable screenshot inner view */}
                         <div style={{
                           flex: 1,
@@ -368,58 +387,578 @@ const PageCard = memo(function PageCard({ page, onScreenshotClick }) {
               <div className="page-card__title">{page.title || page.text || 'Untitled Page'}</div>
               <div className="page-card__url">{page.url}</div>
 
-              {/* Metadata section */}
-              <div className="page-card__metadata" style={{ marginTop: 18, padding: '12px 15px', background: 'rgba(255,255,255,0.03)', borderRadius: '8px' }}>
-                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px' }}>
-                  <div>
-                    <div style={{ fontSize: '13px', color: 'var(--text-muted)', fontWeight: 700, textTransform: 'uppercase' }}>Description</div>
-                    <div style={{ fontSize: '14px', color: 'var(--text-secondary)', marginTop: 2, display: '-webkit-box', WebkitLineClamp: '2', WebkitBoxOrient: 'vertical', overflow: 'hidden' }}>
-                      {page.elementsInfo?.seo?.description || 'No description found'}
+              {/* Redesigned Metadata & Structure Analysis dashboard */}
+              <div style={{ marginTop: '24px' }}>
+                {/* Row 1: Metadata grid */}
+                <div className="metadata-grid" style={{ gap: '20px', marginBottom: '20px', alignItems: 'stretch' }}>
+                  {/* Metadata Analysis Card */}
+                  <div style={{
+                    background: 'rgba(255, 255, 255, 0.015)',
+                    border: '1px solid var(--border-subtle)',
+                    borderRadius: '16px',
+                    padding: '24px',
+                    display: 'flex',
+                    flexDirection: 'column',
+                    justifyContent: 'space-between',
+                    gap: '20px'
+                  }}>
+                    {/* Card Header */}
+                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                      <div style={{ display: 'flex', alignItems: 'center', gap: '8px', fontSize: '11px', fontWeight: 800, color: '#10b981', letterSpacing: '0.08em', textTransform: 'uppercase' }}>
+                        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                          <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z" />
+                          <polyline points="14 2 14 8 20 8" />
+                          <line x1="16" y1="13" x2="8" y2="13" />
+                          <line x1="16" y1="17" x2="8" y2="17" />
+                        </svg>
+                        Metadata Analysis
+                      </div>
+                      <button style={{
+                        background: 'transparent',
+                        border: '1px solid var(--accent-primary)',
+                        color: 'var(--accent-primary)',
+                        borderRadius: '20px',
+                        padding: '5px 14px',
+                        fontSize: '10px',
+                        fontWeight: 800,
+                        letterSpacing: '0.05em',
+                        cursor: 'pointer',
+                        textTransform: 'uppercase',
+                        transition: 'all 0.2s ease'
+                      }}
+                        onMouseEnter={(e) => {
+                          e.currentTarget.style.background = 'rgba(0, 240, 255, 0.05)';
+                          e.currentTarget.style.boxShadow = '0 0 8px rgba(0, 240, 255, 0.2)';
+                        }}
+                        onMouseLeave={(e) => {
+                          e.currentTarget.style.background = 'transparent';
+                          e.currentTarget.style.boxShadow = 'none';
+                        }}
+                      >
+                        Edit SEO Tags
+                      </button>
                     </div>
-                  </div>
-                  <div>
-                    <div style={{ fontSize: '13px', color: 'var(--text-muted)', fontWeight: 700, textTransform: 'uppercase' }}>Keywords</div>
-                    <div style={{ fontSize: '14px', color: 'var(--text-secondary)', marginTop: 2, display: '-webkit-box', WebkitLineClamp: '2', WebkitBoxOrient: 'vertical', overflow: 'hidden' }}>
-                      {page.elementsInfo?.seo?.keywords || 'None'}
-                    </div>
-                  </div>
-                </div>
-              </div>
 
-              {/* Stats Grid */}
-              <div className="page-card__stats" style={{ marginTop: 22 }}>
-                <div className="page-card__stat">
-                  <div className="page-card__stat-label">Status</div>
-                  <div
-                    className={`page-card__stat-value ${loadStatus === 'SUCCESS'
-                      ? 'page-card__stat-value--success'
-                      : 'page-card__stat-value--error'
-                      }`}
-                  >
-                    {loadStatus === 'SUCCESS' ? '✓ OK' : '✗ Failed'}
-                  </div>
-                </div>
-                <div className="page-card__stat">
-                  <div className="page-card__stat-label">AI Score</div>
-                  <div
-                    className="page-card__stat-value"
-                    style={{ color: getScoreFillColor(score) }}
-                  >
-                    {score > 0 ? `${score}/100` : 'N/A'}
-                  </div>
-                </div>
-                <div className="page-card__stat" style={{ gridColumn: '1 / -1' }}>
-                  <div className="page-card__stat-label" style={{ textTransform: 'uppercase', letterSpacing: '0.5px', marginBottom: '8px' }}>Elements</div>
-                  <div className="page-card__stat-value" style={{ fontSize: '14px', display: 'flex', flexDirection: 'column', gap: '8px' }}>
-                    <div style={{ fontWeight: '700', letterSpacing: '0.5px' }}>
-                      🖼️ {page.elementsInfo?.counts?.images || 0} &nbsp;/&nbsp; 🔗 {page.elementsInfo?.counts?.links || 0} &nbsp;/&nbsp; 🔘 {page.elementsInfo?.counts?.buttons || 0} &nbsp;/&nbsp; 📝 {page.elementsInfo?.counts?.forms || 0}
+                    {/* Meta Description Block */}
+                    <div>
+                      <div style={{
+                        display: 'flex',
+                        alignItems: 'center',
+                        gap: '8px',
+                        fontSize: '10px',
+                        fontWeight: 800,
+                        color: 'var(--text-muted)',
+                        letterSpacing: '0.06em',
+                        textTransform: 'uppercase',
+                        marginBottom: '10px',
+                        borderLeft: '2px solid var(--accent-primary)',
+                        paddingLeft: '8px'
+                      }}>
+                        Meta Description
+                      </div>
+                      <div style={{
+                        background: 'rgba(15, 23, 42, 0.45)',
+                        border: '1px solid rgba(255, 255, 255, 0.03)',
+                        borderRadius: '8px',
+                        padding: '12px 16px',
+                        fontSize: '13.5px',
+                        color: 'var(--text-primary)',
+                        lineHeight: '1.5'
+                      }}>
+                        {page.elementsInfo?.seo?.description || 'No description found'}
+                      </div>
                     </div>
-                    <div style={{ display: 'flex', gap: '16px', fontSize: '13px', color: 'var(--text-muted)', flexWrap: 'wrap' }}>
-                      <span style={{ color: '#f59e0b', fontWeight: 'bold' }} title="Missing Image SRC">❌ Src: <span style={{ color: '#fff', opacity: 0.9 }}>{page.elementsInfo?.counts?.missingSrc || 0}</span></span>
-                      <span style={{ color: '#06b6d4', fontWeight: 'bold' }} title="Missing Image ALT">🖼️ Alt: <span style={{ color: '#fff', opacity: 0.9 }}>{page.elementsInfo?.counts?.missingAlt || 0}</span></span>
-                      <span style={{ color: '#a855f7', fontWeight: 'bold' }} title="Duplicate Image URLs">♊ Img Dup: <span style={{ color: '#fff', opacity: 0.9 }}>{page.elementsInfo?.counts?.duplicateImages || 0}</span></span>
-                      <span style={{ color: '#3b82f6', fontWeight: 'bold' }} title="Duplicate Link URLs">🔗 Link Dup: <span style={{ color: '#fff', opacity: 0.9 }}>{page.elementsInfo?.counts?.duplicateLinks || 0}</span></span>
-                      <span style={{ color: '#3b82f6', fontWeight: 'bold' }} title="Total Links Listed">🔗 Total Links: <span style={{ color: '#fff', opacity: 0.9 }}>{page.brokenLinksCheck?.length || 0}</span></span>
+
+                    {/* Target Keywords Block */}
+                    <div>
+                      <div style={{
+                        display: 'flex',
+                        alignItems: 'center',
+                        gap: '8px',
+                        fontSize: '10px',
+                        fontWeight: 800,
+                        color: 'var(--text-muted)',
+                        letterSpacing: '0.06em',
+                        textTransform: 'uppercase',
+                        marginBottom: '10px',
+                        borderLeft: '2px solid var(--accent-primary)',
+                        paddingLeft: '8px'
+                      }}>
+                        Target Keywords
+                      </div>
+                      <div style={{ display: 'flex', gap: '8px', flexWrap: 'wrap' }}>
+                        {page.elementsInfo?.seo?.keywords ? (
+                          page.elementsInfo.seo.keywords.split(',').map((kw, idx) => (
+                            <span key={idx} style={{
+                              background: 'rgba(0, 240, 255, 0.04)',
+                              border: '1px solid rgba(0, 240, 255, 0.15)',
+                              color: 'var(--accent-primary)',
+                              borderRadius: '6px',
+                              padding: '6px 12px',
+                              fontSize: '11px',
+                              fontWeight: 700
+                            }}>
+                              {kw.trim()}
+                            </span>
+                          ))
+                        ) : (
+                          <span style={{
+                            background: 'rgba(255, 255, 255, 0.03)',
+                            border: '1px solid var(--border-subtle)',
+                            color: 'var(--text-muted)',
+                            borderRadius: '6px',
+                            padding: '6px 12px',
+                            fontSize: '11px',
+                            fontWeight: 700,
+                            fontStyle: 'italic'
+                          }}>
+                            None
+                          </span>
+                        )}
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* Indexing Status Card */}
+                  <div style={{
+                    background: 'rgba(255, 255, 255, 0.015)',
+                    border: '1px solid var(--border-subtle)',
+                    borderRadius: '16px',
+                    padding: '24px',
+                    display: 'flex',
+                    flexDirection: 'column',
+                    alignItems: 'center',
+                    justifyContent: 'space-between',
+                    minHeight: '260px',
+                    textAlign: 'center'
+                  }}>
+                    <div style={{ fontSize: '10px', fontWeight: 800, color: 'var(--text-muted)', letterSpacing: '0.08em', textTransform: 'uppercase', alignSelf: 'flex-start', marginBottom: '16px' }}>
+                      Indexing Status
+                    </div>
+
+                    <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '12px' }}>
+                      {/* Green Badge Icon */}
+                      <div style={{
+                        width: '56px',
+                        height: '56px',
+                        borderRadius: '14px',
+                        background: 'rgba(16, 185, 129, 0.08)',
+                        border: '1px solid rgba(16, 185, 129, 0.25)',
+                        display: 'flex',
+                        alignItems: 'center',
+                        justifyContent: 'center',
+                        color: '#10b981',
+                        boxShadow: '0 0 20px rgba(16, 185, 129, 0.1)'
+                      }}>
+                        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                          <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z" />
+                          <polyline points="9 11 11 13 15 9" />
+                        </svg>
+                      </div>
+
+                      <div style={{ fontSize: '24px', fontWeight: 900, color: 'var(--text-primary)', textTransform: 'uppercase', letterSpacing: '1px', marginTop: '8px' }}>
+                        {loadStatus === 'SUCCESS' ? 'OK' : 'FAILED'}
+                      </div>
+
+                      <div style={{ fontSize: '11px', color: 'var(--text-muted)', fontWeight: 500 }}>
+                        {loadStatus === 'SUCCESS' ? 'System Crawl Complete' : 'Network/DNS Resolve Failed'}
+                      </div>
+                    </div>
+
+                    <div style={{ display: 'flex', justifyContent: 'space-between', width: '100%', borderTop: '1px solid rgba(255, 255, 255, 0.03)', paddingTop: '16px', marginTop: '16px', fontSize: '10px' }}>
+                      <span style={{ fontWeight: 800, color: 'var(--text-muted)', letterSpacing: '0.05em' }}>LAST UPDATE</span>
+                      <span style={{ fontWeight: 800, color: '#10b981', letterSpacing: '0.05em' }}>{getRelativeTime(testDate)}</span>
+                    </div>
+                  </div>
+
+                  {/* AI Relevancy Card */}
+                  <div style={{
+                    background: 'rgba(255, 255, 255, 0.015)',
+                    border: '1px solid var(--border-subtle)',
+                    borderRadius: '16px',
+                    padding: '24px',
+                    display: 'flex',
+                    flexDirection: 'column',
+                    alignItems: 'center',
+                    justifyContent: 'space-between',
+                    minHeight: '260px',
+                    textAlign: 'center'
+                  }}>
+                    <div style={{ fontSize: '10px', fontWeight: 800, color: 'var(--text-muted)', letterSpacing: '0.08em', textTransform: 'uppercase', alignSelf: 'flex-start', marginBottom: '16px' }}>
+                      AI Relevancy
+                    </div>
+
+                    <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '12px' }}>
+                      {/* Red Warning Icon */}
+                      <div style={{
+                        width: '56px',
+                        height: '56px',
+                        borderRadius: '14px',
+                        background: 'rgba(239, 68, 68, 0.08)',
+                        border: '1px solid rgba(239, 68, 68, 0.25)',
+                        display: 'flex',
+                        alignItems: 'center',
+                        justifyContent: 'center',
+                        color: '#ff716c',
+                        boxShadow: '0 0 20px rgba(239, 68, 68, 0.1)'
+                      }}>
+                        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                          <path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z" />
+                          <line x1="12" y1="9" x2="12" y2="13" />
+                          <line x1="12" y1="17" x2="12.01" y2="17" />
+                        </svg>
+                      </div>
+
+                      <div style={{ fontSize: '24px', fontWeight: 900, color: score > 0 ? 'var(--accent-primary)' : '#ff716c', textTransform: 'uppercase', letterSpacing: '1px', marginTop: '8px' }}>
+                        {score > 0 ? `${score}%` : 'N/A'}
+                      </div>
+
+                      <div style={{ fontSize: '11px', color: 'var(--text-muted)', fontWeight: 500 }}>
+                        {score > 0 ? 'Audit Scan Evaluated' : 'Pending Training'}
+                      </div>
+                    </div>
+
+                    <div style={{ display: 'flex', justifyContent: 'center', width: '100%', borderTop: '1px solid rgba(255, 255, 255, 0.03)', paddingTop: '16px', marginTop: '16px' }}>
+                      <span style={{ fontSize: '10px', fontWeight: 800, color: 'var(--text-muted)', letterSpacing: '0.08em', textTransform: 'uppercase', cursor: 'pointer' }}
+                        onMouseEnter={(e) => e.currentTarget.style.color = 'var(--text-primary)'}
+                        onMouseLeave={(e) => e.currentTarget.style.color = 'var(--text-muted)'}
+                      >
+                        Request Audit
+                      </span>
+                    </div>
+                  </div>
+                </div>
+
+                {/* Structure Analysis Full Width Panel */}
+                <div style={{
+                  background: 'rgba(255, 255, 255, 0.015)',
+                  border: '1px solid var(--border-subtle)',
+                  borderRadius: '16px',
+                  padding: '24px',
+                  marginTop: '20px'
+                }}>
+                  {/* Header */}
+                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '24px', flexWrap: 'wrap', gap: '16px' }}>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+                      <div style={{
+                        width: '36px',
+                        height: '36px',
+                        borderRadius: '8px',
+                        background: 'rgba(0, 240, 255, 0.08)',
+                        border: '1px solid rgba(0, 240, 255, 0.25)',
+                        display: 'flex',
+                        alignItems: 'center',
+                        justifyContent: 'center',
+                        color: 'var(--accent-primary)'
+                      }}>
+                        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                          <rect x="3" y="3" width="7" height="9" />
+                          <rect x="14" y="3" width="7" height="5" />
+                          <rect x="14" y="12" width="7" height="9" />
+                          <rect x="3" y="16" width="7" height="5" />
+                        </svg>
+                      </div>
+                      <div>
+                        <h3 style={{ fontSize: '1.25rem', fontWeight: 800, color: 'var(--text-primary)', margin: 0, letterSpacing: '-0.5px' }}>
+                          Structure Analysis
+                        </h3>
+                        <p style={{ fontSize: '0.8rem', color: 'var(--text-muted)', margin: '1px 0 0 0' }}>
+                          Hierarchical breakdown of site assets
+                        </p>
+                      </div>
+                    </div>
+
+                    {/* Healthy / Issues status indicators */}
+                    <div style={{ display: 'flex', gap: '16px', fontSize: '10px', fontWeight: 800, letterSpacing: '0.05em', textTransform: 'uppercase' }}>
+                      <span style={{ display: 'flex', alignItems: 'center', gap: '6px', color: '#10b981' }}>
+                        <span style={{ width: '6px', height: '6px', borderRadius: '50%', background: '#10b981', display: 'inline-block' }} />
+                        Healthy
+                      </span>
+                      <span style={{ display: 'flex', alignItems: 'center', gap: '6px', color: '#ff716c' }}>
+                        <span style={{ width: '6px', height: '6px', borderRadius: '50%', background: '#ff716c', display: 'inline-block' }} />
+                        Issues
+                      </span>
+                    </div>
+                  </div>
+
+                  {/* Cards Row Grid */}
+                  <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(180px, 1fr))', gap: '20px' }}>
+                    {/* Images Found */}
+                    <div style={{
+                      background: 'rgba(255, 255, 255, 0.015)',
+                      border: '1px solid var(--border-subtle)',
+                      borderRadius: '12px',
+                      padding: '20px',
+                      display: 'flex',
+                      flexDirection: 'column',
+                      justifyContent: 'space-between',
+                      minHeight: '130px'
+                    }}>
+                      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="var(--text-muted)" strokeWidth="2">
+                          <rect x="3" y="3" width="18" height="18" rx="2" ry="2" />
+                          <circle cx="8.5" cy="8.5" r="1.5" />
+                          <polyline points="21 15 16 10 5 21" />
+                        </svg>
+                        <span style={{
+                          background: 'rgba(0, 240, 255, 0.05)',
+                          border: '1px solid rgba(0, 240, 255, 0.15)',
+                          color: 'var(--accent-primary)',
+                          fontSize: '9px',
+                          fontWeight: 800,
+                          padding: '2px 8px',
+                          borderRadius: '20px',
+                          textTransform: 'uppercase'
+                        }}>
+                          {(page.elementsInfo?.counts?.images || 0) > 30 ? 'HIGH' : ((page.elementsInfo?.counts?.images || 0) > 10 ? 'MODERATE' : 'LOW')}
+                        </span>
+                      </div>
+                      <div>
+                        <div style={{ fontSize: '24px', fontWeight: 800, color: 'var(--text-primary)', marginBottom: '4px' }}>
+                          {page.elementsInfo?.counts?.images || 0}
+                        </div>
+                        <div style={{ fontSize: '9px', fontWeight: 800, color: 'var(--text-muted)', letterSpacing: '0.05em', textTransform: 'uppercase' }}>
+                          Images Found
+                        </div>
+                      </div>
+                    </div>
+
+                    {/* Total Links */}
+                    <div style={{
+                      background: 'rgba(255, 255, 255, 0.015)',
+                      border: '1px solid var(--border-subtle)',
+                      borderRadius: '12px',
+                      padding: '20px',
+                      display: 'flex',
+                      flexDirection: 'column',
+                      justifyContent: 'space-between',
+                      minHeight: '130px'
+                    }}>
+                      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="var(--text-muted)" strokeWidth="2">
+                          <path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71" />
+                          <path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71" />
+                        </svg>
+                        <span style={{
+                          background: 'rgba(0, 240, 255, 0.05)',
+                          border: '1px solid rgba(0, 240, 255, 0.15)',
+                          color: 'var(--accent-primary)',
+                          fontSize: '9px',
+                          fontWeight: 800,
+                          padding: '2px 8px',
+                          borderRadius: '20px',
+                          textTransform: 'uppercase'
+                        }}>
+                          {(page.elementsInfo?.counts?.links || 0) > 100 ? 'DENSE' : ((page.elementsInfo?.counts?.links || 0) > 30 ? 'MEDIUM' : 'SPARSE')}
+                        </span>
+                      </div>
+                      <div>
+                        <div style={{ fontSize: '24px', fontWeight: 800, color: 'var(--text-primary)', marginBottom: '4px' }}>
+                          {page.elementsInfo?.counts?.links || 0}
+                        </div>
+                        <div style={{ fontSize: '9px', fontWeight: 800, color: 'var(--text-muted)', letterSpacing: '0.05em', textTransform: 'uppercase' }}>
+                          Total Links
+                        </div>
+                      </div>
+                    </div>
+
+                    {/* JS Scripts */}
+                    <div style={{
+                      background: 'rgba(255, 255, 255, 0.015)',
+                      border: '1px solid var(--border-subtle)',
+                      borderRadius: '12px',
+                      padding: '20px',
+                      display: 'flex',
+                      flexDirection: 'column',
+                      justifyContent: 'space-between',
+                      minHeight: '130px'
+                    }}>
+                      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="var(--text-muted)" strokeWidth="2">
+                          <polyline points="16 18 22 12 16 6" />
+                          <polyline points="8 6 2 12 8 18" />
+                        </svg>
+                        <span style={{
+                          background: (page.elementsInfo?.counts?.scripts || 0) === 0 ? 'rgba(16, 185, 129, 0.05)' : 'rgba(255, 255, 255, 0.02)',
+                          border: (page.elementsInfo?.counts?.scripts || 0) === 0 ? '1px solid rgba(16, 185, 129, 0.15)' : '1px solid var(--border-subtle)',
+                          color: (page.elementsInfo?.counts?.scripts || 0) === 0 ? '#10b981' : 'var(--text-muted)',
+                          fontSize: '9px',
+                          fontWeight: 800,
+                          padding: '2px 8px',
+                          borderRadius: '20px',
+                          textTransform: 'uppercase'
+                        }}>
+                          {(page.elementsInfo?.counts?.scripts || 0) === 0 ? 'CLEAN' : 'ACTIVE'}
+                        </span>
+                      </div>
+                      <div>
+                        <div style={{ fontSize: '24px', fontWeight: 800, color: 'var(--text-primary)', marginBottom: '4px' }}>
+                          {page.elementsInfo?.counts?.scripts || 0}
+                        </div>
+                        <div style={{ fontSize: '9px', fontWeight: 800, color: 'var(--text-muted)', letterSpacing: '0.05em', textTransform: 'uppercase' }}>
+                          JS Scripts
+                        </div>
+                      </div>
+                    </div>
+
+                    {/* Style Bundle */}
+                    <div style={{
+                      background: 'rgba(255, 255, 255, 0.015)',
+                      border: '1px solid var(--border-subtle)',
+                      borderRadius: '12px',
+                      padding: '20px',
+                      display: 'flex',
+                      flexDirection: 'column',
+                      justifyContent: 'space-between',
+                      minHeight: '130px'
+                    }}>
+                      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="var(--text-muted)" strokeWidth="2">
+                          <path d="M12 22C17.5228 22 22 17.5228 22 12C22 6.47715 17.5228 2 12 2C6.47715 2 2 6.47715 2 12C2 14.7255 3.09032 17.1962 4.85857 19C5.34737 18.5135 6.00843 18.2105 6.75 18.2105H8.375C9.47957 18.2105 10.375 19.1059 10.375 20.2105V21.642C10.9029 21.875 11.4559 22 12 22Z" />
+                        </svg>
+                        <span style={{
+                          background: 'rgba(16, 185, 129, 0.05)',
+                          border: '1px solid rgba(16, 185, 129, 0.15)',
+                          color: '#10b981',
+                          fontSize: '9px',
+                          fontWeight: 800,
+                          padding: '2px 8px',
+                          borderRadius: '20px',
+                          textTransform: 'uppercase'
+                        }}>
+                          LIGHT
+                        </span>
+                      </div>
+                      <div>
+                        <div style={{ fontSize: '24px', fontWeight: 800, color: 'var(--text-primary)', marginBottom: '4px' }}>
+                          {page.elementsInfo?.counts?.styles || 1}
+                        </div>
+                        <div style={{ fontSize: '9px', fontWeight: 800, color: 'var(--text-muted)', letterSpacing: '0.05em', textTransform: 'uppercase' }}>
+                          Style Bundle
+                        </div>
+                      </div>
+                    </div>
+
+                    {/* Buttons Found */}
+                    <div style={{
+                      background: 'rgba(255, 255, 255, 0.015)',
+                      border: '1px solid var(--border-subtle)',
+                      borderRadius: '12px',
+                      padding: '20px',
+                      display: 'flex',
+                      flexDirection: 'column',
+                      justifyContent: 'space-between',
+                      minHeight: '130px'
+                    }}>
+                      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="var(--text-muted)" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                          <rect x="3" y="11" width="18" height="10" rx="2" ry="2" />
+                          <path d="M12 2v9" />
+                          <path d="M8 5h8" />
+                        </svg>
+                        <span style={{
+                          background: (page.elementsInfo?.counts?.buttons || 0) > 0 ? 'rgba(0, 240, 255, 0.05)' : 'rgba(255, 255, 255, 0.02)',
+                          border: (page.elementsInfo?.counts?.buttons || 0) > 0 ? '1px solid rgba(0, 240, 255, 0.15)' : '1px solid var(--border-subtle)',
+                          color: (page.elementsInfo?.counts?.buttons || 0) > 0 ? 'var(--accent-primary)' : 'var(--text-muted)',
+                          fontSize: '9px',
+                          fontWeight: 800,
+                          padding: '2px 8px',
+                          borderRadius: '20px',
+                          textTransform: 'uppercase'
+                        }}>
+                          {(page.elementsInfo?.counts?.buttons || 0) > 10 ? 'ACTIVE' : 'NONE'}
+                        </span>
+                      </div>
+                      <div>
+                        <div style={{ fontSize: '24px', fontWeight: 800, color: 'var(--text-primary)', marginBottom: '4px' }}>
+                          {page.elementsInfo?.counts?.buttons || 0}
+                        </div>
+                        <div style={{ fontSize: '9px', fontWeight: 800, color: 'var(--text-muted)', letterSpacing: '0.05em', textTransform: 'uppercase' }}>
+                          Buttons Found
+                        </div>
+                      </div>
+                    </div>
+
+                    {/* Forms Found */}
+                    <div style={{
+                      background: 'rgba(255, 255, 255, 0.015)',
+                      border: '1px solid var(--border-subtle)',
+                      borderRadius: '12px',
+                      padding: '20px',
+                      display: 'flex',
+                      flexDirection: 'column',
+                      justifyContent: 'space-between',
+                      minHeight: '130px'
+                    }}>
+                      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="var(--text-muted)" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                          <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z" />
+                          <polyline points="14 2 14 8 20 8" />
+                          <line x1="16" y1="13" x2="8" y2="13" />
+                          <line x1="16" y1="17" x2="8" y2="17" />
+                          <polyline points="10 9 9 9 8 9" />
+                        </svg>
+                        <span style={{
+                          background: (page.elementsInfo?.counts?.forms || 0) > 0 ? 'rgba(0, 240, 255, 0.05)' : 'rgba(255, 255, 255, 0.02)',
+                          border: (page.elementsInfo?.counts?.forms || 0) > 0 ? '1px solid rgba(0, 240, 255, 0.15)' : '1px solid var(--border-subtle)',
+                          color: (page.elementsInfo?.counts?.forms || 0) > 0 ? 'var(--accent-primary)' : 'var(--text-muted)',
+                          fontSize: '9px',
+                          fontWeight: 800,
+                          padding: '2px 8px',
+                          borderRadius: '20px',
+                          textTransform: 'uppercase'
+                        }}>
+                          {(page.elementsInfo?.counts?.forms || 0) > 0 ? 'ACTIVE' : 'NONE'}
+                        </span>
+                      </div>
+                      <div>
+                        <div style={{ fontSize: '24px', fontWeight: 800, color: 'var(--text-primary)', marginBottom: '4px' }}>
+                          {page.elementsInfo?.counts?.forms || 0}
+                        </div>
+                        <div style={{ fontSize: '9px', fontWeight: 800, color: 'var(--text-muted)', letterSpacing: '0.05em', textTransform: 'uppercase' }}>
+                          Forms Found
+                        </div>
+                      </div>
+                    </div>
+
+                    {/* Critical Checks */}
+                    <div style={{
+                      border: '1.5px dashed rgba(239, 68, 68, 0.4)',
+                      background: 'rgba(239, 68, 68, 0.02)',
+                      borderRadius: '12px',
+                      padding: '20px',
+                      display: 'flex',
+                      flexDirection: 'column',
+                      gap: '12px'
+                    }}>
+                      <div style={{ display: 'flex', alignItems: 'center', gap: '8px', fontSize: '10px', fontWeight: 800, color: '#ff716c', letterSpacing: '0.05em', textTransform: 'uppercase' }}>
+                        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                          <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z" />
+                        </svg>
+                        Critical Checks
+                      </div>
+                      <div style={{ display: 'flex', flexDirection: 'column', gap: '8px', fontSize: '11px' }}>
+                        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                          <span style={{ color: 'var(--text-secondary)' }}>Missing Src</span>
+                          <strong style={{ color: '#ff716c' }}>{page.elementsInfo?.counts?.missingSrc || 0}</strong>
+                        </div>
+                        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                          <span style={{ color: 'var(--text-secondary)' }}>Missing Alt</span>
+                          <strong style={{ color: '#ff716c' }}>{page.elementsInfo?.counts?.missingAlt || 0}</strong>
+                        </div>
+                        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                          <span style={{ color: 'var(--text-secondary)' }}>Img Duplicates</span>
+                          <strong style={{ color: '#ff716c' }}>{page.elementsInfo?.counts?.duplicateImages || 0}</strong>
+                        </div>
+                        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                          <span style={{ color: 'var(--text-secondary)' }}>Link Conflicts</span>
+                          <strong style={{ color: '#ff716c' }}>{page.elementsInfo?.counts?.duplicateLinks || 0}</strong>
+                        </div>
+                        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                          <span style={{ color: 'var(--text-secondary)' }}>Total Links Checked</span>
+                          <strong style={{ color: '#ff716c' }}>{page.brokenLinksCheck?.length || 0}</strong>
+                        </div>
+                      </div>
                     </div>
                   </div>
                 </div>
