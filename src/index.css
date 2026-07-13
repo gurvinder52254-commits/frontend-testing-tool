@@ -7053,3 +7053,203 @@ body::before {
     grid-column: span 1 !important;
   }
 }
+/* ============================================================
+   Scan Page — on-demand broken-link scanner
+   (scoped .scan-page*, additive; does not affect other views)
+   ============================================================ */
+.scan-page {
+  max-width: 900px;
+  margin: 100px auto 60px;
+  padding: 0 24px;
+  color: var(--text-primary, #fff);
+}
+.scan-page__head {
+  text-align: center;
+  margin-bottom: 28px;
+}
+.scan-page__title {
+  font-size: 1.9rem;
+  font-weight: 700;
+  margin: 0 0 8px;
+  color: #fff;
+}
+.scan-page__desc {
+  color: var(--text-secondary);
+  margin: 0;
+  font-size: 0.95rem;
+}
+.scan-page__form {
+  display: flex;
+  gap: 12px;
+  margin-bottom: 24px;
+  flex-wrap: wrap;
+}
+.scan-page__input {
+  flex: 1 1 320px;
+  padding: 14px 16px;
+  border-radius: 12px;
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  background: var(--bg-card);
+  color: #fff;
+  font-size: 0.95rem;
+  outline: none;
+  transition: border-color 0.2s, box-shadow 0.2s;
+}
+.scan-page__input:focus {
+  border-color: var(--accent-primary);
+  box-shadow: 0 0 0 3px rgba(0, 240, 255, 0.15);
+}
+.scan-page__btn {
+  padding: 14px 24px;
+  border-radius: 12px;
+  border: none;
+  background: var(--accent-primary);
+  color: #04121a;
+  font-weight: 700;
+  font-size: 0.95rem;
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  transition: opacity 0.2s, transform 0.15s;
+}
+.scan-page__btn:hover:not(:disabled) {
+  transform: translateY(-1px);
+}
+.scan-page__btn:disabled {
+  opacity: 0.55;
+  cursor: not-allowed;
+}
+.scan-page__loading {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  justify-content: center;
+  color: var(--text-secondary);
+  padding: 40px 0;
+}
+.scan-page__results {
+  margin-top: 12px;
+}
+.scan-page__stats {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 16px;
+  margin-bottom: 20px;
+}
+.scan-page__stat {
+  background: var(--bg-card);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: 14px;
+  padding: 20px;
+  text-align: center;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+.scan-page__stat-num {
+  font-size: 2rem;
+  font-weight: 800;
+  color: #fff;
+  line-height: 1;
+}
+.scan-page__stat-label {
+  font-size: 0.82rem;
+  color: var(--text-secondary);
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+.scan-page__scanned {
+  font-size: 0.88rem;
+  color: var(--text-secondary);
+  margin-bottom: 16px;
+  word-break: break-all;
+}
+.scan-page__scanned a {
+  color: var(--accent-primary);
+  text-decoration: none;
+}
+.scan-page__scanned a:hover {
+  text-decoration: underline;
+}
+.scan-page__note {
+  background: rgba(245, 158, 11, 0.12);
+  border: 1px solid rgba(245, 158, 11, 0.4);
+  color: #f59e0b;
+  border-radius: 10px;
+  padding: 10px 14px;
+  font-size: 0.85rem;
+  margin-bottom: 16px;
+}
+.scan-page__list {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+.scan-page__item {
+  display: flex;
+  align-items: flex-start;
+  gap: 14px;
+  background: var(--bg-card);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: 12px;
+  padding: 14px 16px;
+}
+.scan-page__status {
+  flex: 0 0 auto;
+  min-width: 52px;
+  text-align: center;
+  font-weight: 800;
+  font-size: 0.82rem;
+  padding: 6px 8px;
+  border-radius: 8px;
+  border: 1.5px solid currentColor;
+  background: rgba(255, 255, 255, 0.03);
+}
+.scan-page__item-body {
+  min-width: 0;
+  flex: 1 1 auto;
+}
+.scan-page__url {
+  display: block;
+  color: #fff;
+  text-decoration: none;
+  font-size: 0.92rem;
+  word-break: break-all;
+}
+.scan-page__url:hover {
+  color: var(--accent-primary);
+  text-decoration: underline;
+}
+.scan-page__meta {
+  color: var(--text-secondary);
+  font-size: 0.8rem;
+  margin-top: 4px;
+  word-break: break-word;
+}
+@media (max-width: 640px) {
+  .scan-page__stats {
+    grid-template-columns: 1fr;
+  }
+}
+
+/* Scan Page — prominent broken-link count summary banner */
+.scan-page__summary {
+  border-radius: 12px;
+  padding: 16px 20px;
+  font-size: 1.1rem;
+  font-weight: 700;
+  text-align: center;
+  margin-bottom: 20px;
+  border: 1px solid transparent;
+}
+.scan-page__summary--bad {
+  background: rgba(239, 68, 68, 0.12);
+  border-color: rgba(239, 68, 68, 0.45);
+  color: #ef4444;
+}
+.scan-page__summary--good {
+  background: rgba(16, 185, 129, 0.12);
+  border-color: rgba(16, 185, 129, 0.45);
+  color: #10b981;
+}

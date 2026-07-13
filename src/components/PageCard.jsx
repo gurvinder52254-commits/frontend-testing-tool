@@ -45,6 +45,11 @@ const PageCard = memo(function PageCard({ page, onScreenshotClick, testDate }) {
   const analysis = page.analysis || null;
   const stats = page.elementsInfo?.structureStats || null;
 
+  // Broken links = checked links whose status is unreachable (0) or an error (>= 400)
+  const brokenLinksCount = Array.isArray(page.brokenLinksCheck)
+    ? page.brokenLinksCheck.filter((l) => l && (l.status === 0 || l.status >= 400)).length
+    : 0;
+
   // Desktop + Mobile screenshot sources (mobile is optional)
   const desktopUrl = page.desktopScreenshotUrl || page.screenshotUrl;
   const mobileUrl = page.mobileScreenshotUrl;
@@ -918,6 +923,46 @@ const PageCard = memo(function PageCard({ page, onScreenshotClick, testDate }) {
                         </div>
                         <div style={{ fontSize: '9px', fontWeight: 800, color: 'var(--text-muted)', letterSpacing: '0.05em', textTransform: 'uppercase' }}>
                           Forms Found
+                        </div>
+                      </div>
+                    </div>
+
+                    {/* Broken Links — highlighted count */}
+                    <div style={{
+                      background: brokenLinksCount > 0 ? 'rgba(239, 68, 68, 0.06)' : 'rgba(16, 185, 129, 0.04)',
+                      border: brokenLinksCount > 0 ? '1.5px solid rgba(239, 68, 68, 0.55)' : '1px solid rgba(16, 185, 129, 0.35)',
+                      boxShadow: brokenLinksCount > 0 ? '0 0 16px rgba(239, 68, 68, 0.25)' : 'none',
+                      borderRadius: '12px',
+                      padding: '20px',
+                      display: 'flex',
+                      flexDirection: 'column',
+                      justifyContent: 'space-between',
+                      minHeight: '130px'
+                    }}>
+                      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke={brokenLinksCount > 0 ? '#ef4444' : '#10b981'} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                          <path d="M18.36 6.64a9 9 0 1 1-12.73 0" />
+                          <line x1="12" y1="2" x2="12" y2="12" />
+                        </svg>
+                        <span style={{
+                          background: brokenLinksCount > 0 ? 'rgba(239, 68, 68, 0.12)' : 'rgba(16, 185, 129, 0.08)',
+                          border: brokenLinksCount > 0 ? '1px solid rgba(239, 68, 68, 0.4)' : '1px solid rgba(16, 185, 129, 0.2)',
+                          color: brokenLinksCount > 0 ? '#ef4444' : '#10b981',
+                          fontSize: '9px',
+                          fontWeight: 800,
+                          padding: '2px 8px',
+                          borderRadius: '20px',
+                          textTransform: 'uppercase'
+                        }}>
+                          {brokenLinksCount > 0 ? 'ISSUES' : 'HEALTHY'}
+                        </span>
+                      </div>
+                      <div>
+                        <div style={{ fontSize: '24px', fontWeight: 800, color: brokenLinksCount > 0 ? '#ef4444' : 'var(--text-primary)', marginBottom: '4px' }}>
+                          {brokenLinksCount}
+                        </div>
+                        <div style={{ fontSize: '9px', fontWeight: 800, color: 'var(--text-muted)', letterSpacing: '0.05em', textTransform: 'uppercase' }}>
+                          Broken Links
                         </div>
                       </div>
                     </div>

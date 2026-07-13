@@ -5,6 +5,7 @@ import TestingDashboard from './components/TestingDashboard';
 import VirtualPageGrid from './components/VirtualPageGrid';
 import ReportDashboard from './components/ReportDashboard';
 import ReportsPage from './components/ReportsPage';
+import ScanPage from './components/ScanPage';
 import Header from './components/Header';
 import LoginPage from './components/LoginPage';
 import Test from './test';
@@ -170,6 +171,9 @@ function App() {
       } else if (hash === '#/plans') {
         setSelectedTestId(null);
         setActiveView('plans');
+      } else if (hash === '#/scan-page') {
+        setSelectedTestId(null);
+        setActiveView('scan-page');
       } else {
         setSelectedTestId(null);
         setActiveView('dashboard');
@@ -506,6 +510,10 @@ function App() {
       setActiveView('plans');
       setSelectedTestId(null);
       window.location.hash = '/plans';
+    } else if (view === 'scan-page') {
+      setActiveView('scan-page');
+      setSelectedTestId(null);
+      window.location.hash = '/scan-page';
     }
   }, []);
 
@@ -565,6 +573,7 @@ function App() {
   const showFooter =
     activeView === 'reports' ||
     activeView === 'profile' ||
+    activeView === 'scan-page' ||
     (activeView === 'dashboard' && status === 'idle');
 
   return (
@@ -608,6 +617,11 @@ function App() {
       {/* === PLANS VIEW === */}
       {activeView === 'plans' && (
         <PlansPage />
+      )}
+
+      {/* === SCAN PAGE VIEW (broken-link scanner) === */}
+      {activeView === 'scan-page' && (
+        <ScanPage />
       )}
 
       {/* === DASHBOARD VIEW (default) === */}

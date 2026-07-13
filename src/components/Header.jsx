@@ -46,6 +46,12 @@ const Header = ({ status, wsConnected, activeView, onNavigate }) => {
           Reports
         </span>
         <span
+          className={`header__nav-link ${activeView === 'scan-page' ? 'header__nav-link--active' : ''}`}
+          onClick={() => handleNavigate('scan-page')}
+        >
+          Scan Page
+        </span>
+        <span
           className={`header__nav-link ${activeView === 'plans' ? 'header__nav-link--active' : ''}`}
           onClick={() => handleNavigate('plans')}
         >
@@ -111,6 +117,12 @@ const Header = ({ status, wsConnected, activeView, onNavigate }) => {
             onClick={() => handleNavigate('reports')}
           >
             Reports
+          </span>
+          <span
+            className={`header__mobile-nav-link ${activeView === 'scan-page' ? 'header__mobile-nav-link--active' : ''}`}
+            onClick={() => handleNavigate('scan-page')}
+          >
+            Scan Page
           </span>
           <span
             className={`header__mobile-nav-link ${activeView === 'plans' ? 'header__mobile-nav-link--active' : ''}`}
