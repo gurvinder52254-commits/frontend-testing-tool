@@ -43,6 +43,7 @@ const PageCard = memo(function PageCard({ page, onScreenshotClick, testDate }) {
 
   const score = page.analysis?.overallScore || page.score || 0;
   const analysis = page.analysis || null;
+  const stats = page.elementsInfo?.structureStats || null;
 
   // Desktop + Mobile screenshot sources (mobile is optional)
   const desktopUrl = page.desktopScreenshotUrl || page.screenshotUrl;
@@ -922,45 +923,284 @@ const PageCard = memo(function PageCard({ page, onScreenshotClick, testDate }) {
                     </div>
 
                     {/* Critical Checks */}
-                    <div style={{
-                      border: '1.5px dashed rgba(239, 68, 68, 0.4)',
-                      background: 'rgba(239, 68, 68, 0.02)',
-                      borderRadius: '12px',
-                      padding: '20px',
-                      display: 'flex',
-                      flexDirection: 'column',
-                      gap: '12px'
-                    }}>
-                      <div style={{ display: 'flex', alignItems: 'center', gap: '8px', fontSize: '10px', fontWeight: 800, color: '#ff716c', letterSpacing: '0.05em', textTransform: 'uppercase' }}>
-                        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
-                          <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z" />
-                        </svg>
-                        Critical Checks
+                    {!stats && (
+                      <div style={{
+                        border: '1.5px dashed rgba(239, 68, 68, 0.4)',
+                        background: 'rgba(239, 68, 68, 0.02)',
+                        borderRadius: '12px',
+                        padding: '20px',
+                        display: 'flex',
+                        flexDirection: 'column',
+                        gap: '12px'
+                      }}>
+                        <div style={{ display: 'flex', alignItems: 'center', gap: '8px', fontSize: '10px', fontWeight: 800, color: '#ff716c', letterSpacing: '0.05em', textTransform: 'uppercase' }}>
+                          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                            <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z" />
+                          </svg>
+                          Critical Checks
+                        </div>
+                        <div style={{ display: 'flex', flexDirection: 'column', gap: '8px', fontSize: '11px' }}>
+                          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                            <span style={{ color: 'var(--text-secondary)' }}>Missing Src</span>
+                            <strong style={{ color: '#ff716c' }}>{page.elementsInfo?.counts?.missingSrc || 0}</strong>
+                          </div>
+                          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                            <span style={{ color: 'var(--text-secondary)' }}>Missing Alt</span>
+                            <strong style={{ color: '#ff716c' }}>{page.elementsInfo?.counts?.missingAlt || 0}</strong>
+                          </div>
+                          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                            <span style={{ color: 'var(--text-secondary)' }}>Img Duplicates</span>
+                            <strong style={{ color: '#ff716c' }}>{page.elementsInfo?.counts?.duplicateImages || 0}</strong>
+                          </div>
+                          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                            <span style={{ color: 'var(--text-secondary)' }}>Link Conflicts</span>
+                            <strong style={{ color: '#ff716c' }}>{page.elementsInfo?.counts?.duplicateLinks || 0}</strong>
+                          </div>
+                          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                            <span style={{ color: 'var(--text-secondary)' }}>Total Links Checked</span>
+                            <strong style={{ color: '#ff716c' }}>{page.brokenLinksCheck?.length || 0}</strong>
+                          </div>
+                        </div>
                       </div>
-                      <div style={{ display: 'flex', flexDirection: 'column', gap: '8px', fontSize: '11px' }}>
-                        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                          <span style={{ color: 'var(--text-secondary)' }}>Missing Src</span>
-                          <strong style={{ color: '#ff716c' }}>{page.elementsInfo?.counts?.missingSrc || 0}</strong>
+                    )}
+                  </div>
+
+                  {/* Redesigned Structure Analysis Detailed Dashboard */}
+                  {stats && (
+                    <div style={{ 
+                      display: 'grid', 
+                      gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))', 
+                      gap: '20px', 
+                      marginTop: '24px' 
+                    }}>
+                      {/* 1. Content & Meta Card */}
+                      <div className="page-card__network-table" style={{ padding: '16px 20px', display: 'flex', flexDirection: 'column', gap: '14px' }}>
+                        <div style={{ display: 'flex', alignItems: 'center', gap: '8px', fontSize: '11px', fontWeight: 800, color: '#c084fc', textTransform: 'uppercase', letterSpacing: '0.8px', borderBottom: '1px solid rgba(255,255,255,0.05)', paddingBottom: '10px' }}>
+                          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                            <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z" />
+                            <polyline points="14 2 14 8 20 8" />
+                            <line x1="16" y1="13" x2="8" y2="13" />
+                            <line x1="16" y1="17" x2="8" y2="17" />
+                          </svg>
+                          Content & Meta Analysis
                         </div>
-                        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                          <span style={{ color: 'var(--text-secondary)' }}>Missing Alt</span>
-                          <strong style={{ color: '#ff716c' }}>{page.elementsInfo?.counts?.missingAlt || 0}</strong>
+                        <div style={{ display: 'flex', flexDirection: 'column', gap: '10px', fontSize: '12px' }}>
+                          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', borderBottom: '1px solid rgba(255,255,255,0.02)', paddingBottom: '6px' }}>
+                            <span style={{ color: 'var(--text-secondary)' }}>Words Count</span>
+                            <strong style={{ color: 'var(--text-primary)' }}>{stats.words || 0}</strong>
+                          </div>
+                          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', borderBottom: '1px solid rgba(255,255,255,0.02)', paddingBottom: '6px' }}>
+                            <span style={{ color: 'var(--text-secondary)' }}>Sentences</span>
+                            <strong style={{ color: 'var(--text-primary)' }}>{stats.sentences || 0}</strong>
+                          </div>
+                          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', borderBottom: '1px solid rgba(255,255,255,0.02)', paddingBottom: '6px' }}>
+                            <span style={{ color: 'var(--text-secondary)' }}>Paragraphs</span>
+                            <strong style={{ color: 'var(--text-primary)' }}>{stats.paragraphs || 0}</strong>
+                          </div>
+                          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', borderBottom: '1px solid rgba(255,255,255,0.02)', paddingBottom: '6px' }}>
+                            <span style={{ color: 'var(--text-secondary)' }}>Characters</span>
+                            <strong style={{ color: 'var(--text-primary)' }}>{stats.characters || 0}</strong>
+                          </div>
+                          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', borderBottom: '1px solid rgba(255,255,255,0.02)', paddingBottom: '6px' }}>
+                            <span style={{ color: 'var(--text-secondary)' }}>Characters (No Spaces)</span>
+                            <strong style={{ color: 'var(--text-primary)' }}>{stats.charactersNoSpaces || 0}</strong>
+                          </div>
+                          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', borderBottom: '1px solid rgba(255,255,255,0.02)', paddingBottom: '6px' }}>
+                            <span style={{ color: 'var(--text-secondary)' }}>Estimated Pages (500 w/p)</span>
+                            <strong style={{ color: 'var(--text-primary)' }}>{stats.estimatedPages || 0}</strong>
+                          </div>
+                          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', borderBottom: '1px solid rgba(255,255,255,0.02)', paddingBottom: '6px' }}>
+                            <span style={{ color: 'var(--text-secondary)' }}>Reading Time</span>
+                            <strong style={{ color: '#06b6d4' }}>{stats.readingTime || "0.0"} min</strong>
+                          </div>
+                          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', borderBottom: '1px solid rgba(255,255,255,0.02)', paddingBottom: '6px' }}>
+                            <span style={{ color: 'var(--text-secondary)' }}>Speaking Time</span>
+                            <strong style={{ color: '#06b6d4' }}>{stats.speakingTime || "0.0"} min</strong>
+                          </div>
+                          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', borderBottom: '1px solid rgba(255,255,255,0.02)', paddingBottom: '6px' }}>
+                            <span style={{ color: 'var(--text-secondary)' }}>Avg. Words Per Sentence</span>
+                            <strong style={{ color: 'var(--text-primary)' }}>{stats.avgWordsPerSentence || 0}</strong>
+                          </div>
+                          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', borderBottom: '1px solid rgba(255,255,255,0.02)', paddingBottom: '6px' }}>
+                            <span style={{ color: 'var(--text-secondary)' }}>Title Length</span>
+                            <strong style={{ color: stats.titleLength > 60 || stats.titleLength < 30 ? '#fbbf24' : '#10b981' }}>{stats.titleLength || 0} chars</strong>
+                          </div>
+                          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', borderBottom: '1px solid rgba(255,255,255,0.02)', paddingBottom: '6px' }}>
+                            <span style={{ color: 'var(--text-secondary)' }}>Meta Description Length</span>
+                            <strong style={{ color: stats.metaDescriptionLength > 160 || stats.metaDescriptionLength < 120 ? '#fbbf24' : '#10b981' }}>{stats.metaDescriptionLength || 0} chars</strong>
+                          </div>
+                          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', borderBottom: '1px solid rgba(255,255,255,0.02)', paddingBottom: '6px' }}>
+                            <span style={{ color: 'var(--text-secondary)' }}>Canonical Tag</span>
+                            <strong style={{ color: stats.canonical === 'Yes' ? '#10b981' : '#f87171' }}>{stats.canonical || 'No'}</strong>
+                          </div>
+                          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                            <span style={{ color: 'var(--text-secondary)' }}>Robots Meta</span>
+                            <strong style={{ color: stats.robotsMeta === 'Missing' ? '#f87171' : '#10b981' }}>{stats.robotsMeta || 'Missing'}</strong>
+                          </div>
                         </div>
-                        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                          <span style={{ color: 'var(--text-secondary)' }}>Img Duplicates</span>
-                          <strong style={{ color: '#ff716c' }}>{page.elementsInfo?.counts?.duplicateImages || 0}</strong>
+                      </div>
+
+                      {/* 2. Headings & DOM Elements */}
+                      <div className="page-card__network-table" style={{ padding: '16px 20px', display: 'flex', flexDirection: 'column', gap: '14px' }}>
+                        <div style={{ display: 'flex', alignItems: 'center', gap: '8px', fontSize: '11px', fontWeight: 800, color: '#38bdf8', textTransform: 'uppercase', letterSpacing: '0.8px', borderBottom: '1px solid rgba(255,255,255,0.05)', paddingBottom: '10px' }}>
+                          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                            <line x1="4" y1="9" x2="20" y2="9" />
+                            <line x1="4" y1="15" x2="20" y2="15" />
+                            <line x1="10" y1="3" x2="8" y2="21" />
+                            <line x1="16" y1="3" x2="14" y2="21" />
+                          </svg>
+                          Headings & DOM Hierarchy
                         </div>
-                        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                          <span style={{ color: 'var(--text-secondary)' }}>Link Conflicts</span>
-                          <strong style={{ color: '#ff716c' }}>{page.elementsInfo?.counts?.duplicateLinks || 0}</strong>
+                        <div style={{ display: 'flex', flexDirection: 'column', gap: '10px', fontSize: '12px' }}>
+                          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', borderBottom: '1px solid rgba(255,255,255,0.02)', paddingBottom: '6px' }}>
+                            <span style={{ color: 'var(--text-secondary)', fontWeight: 600 }}>H1 Headings</span>
+                            <strong style={{ color: stats.h1 === 0 || stats.h1 > 1 ? '#fbbf24' : '#10b981' }}>{stats.h1 || 0}</strong>
+                          </div>
+                          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', borderBottom: '1px solid rgba(255,255,255,0.02)', paddingBottom: '6px' }}>
+                            <span style={{ color: 'var(--text-secondary)' }}>H2 Headings</span>
+                            <strong style={{ color: 'var(--text-primary)' }}>{stats.h2 || 0}</strong>
+                          </div>
+                          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', borderBottom: '1px solid rgba(255,255,255,0.02)', paddingBottom: '6px' }}>
+                            <span style={{ color: 'var(--text-secondary)' }}>H3 Headings</span>
+                            <strong style={{ color: 'var(--text-primary)' }}>{stats.h3 || 0}</strong>
+                          </div>
+                          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', borderBottom: '1px solid rgba(255,255,255,0.02)', paddingBottom: '6px' }}>
+                            <span style={{ color: 'var(--text-secondary)' }}>H4 Headings</span>
+                            <strong style={{ color: 'var(--text-primary)' }}>{stats.h4 || 0}</strong>
+                          </div>
+                          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', borderBottom: '1px solid rgba(255,255,255,0.02)', paddingBottom: '6px' }}>
+                            <span style={{ color: 'var(--text-secondary)' }}>H5 Headings</span>
+                            <strong style={{ color: 'var(--text-primary)' }}>{stats.h5 || 0}</strong>
+                          </div>
+                          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', borderBottom: '1px solid rgba(255,255,255,0.02)', paddingBottom: '6px' }}>
+                            <span style={{ color: 'var(--text-secondary)' }}>H6 Headings</span>
+                            <strong style={{ color: 'var(--text-primary)' }}>{stats.h6 || 0}</strong>
+                          </div>
+                          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginTop: '10px', paddingTop: '10px', borderTop: '1px dashed rgba(255,255,255,0.05)' }}>
+                            <span style={{ color: 'var(--text-secondary)', fontWeight: 600 }}>Total DOM Elements</span>
+                            <strong style={{ color: stats.domElements > 1500 ? '#f87171' : (stats.domElements > 800 ? '#fbbf24' : '#10b981') }}>{stats.domElements || 0}</strong>
+                          </div>
                         </div>
-                        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                          <span style={{ color: 'var(--text-secondary)' }}>Total Links Checked</span>
-                          <strong style={{ color: '#ff716c' }}>{page.brokenLinksCheck?.length || 0}</strong>
+                      </div>
+
+                      {/* 3. Image & Link Audits */}
+                      <div className="page-card__network-table" style={{ padding: '16px 20px', display: 'flex', flexDirection: 'column', gap: '14px' }}>
+                        <div style={{ display: 'flex', alignItems: 'center', gap: '8px', fontSize: '11px', fontWeight: 800, color: '#f87171', textTransform: 'uppercase', letterSpacing: '0.8px', borderBottom: '1px solid rgba(255, 255, 255, 0.05)', paddingBottom: '10px' }}>
+                          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                            <circle cx="12" cy="12" r="10" />
+                            <line x1="12" y1="8" x2="12" y2="12" />
+                            <line x1="12" y1="16" x2="12.01" y2="16" />
+                          </svg>
+                          Asset & Link Audits
+                        </div>
+                        <div style={{ display: 'flex', flexDirection: 'column', gap: '10px', fontSize: '12px' }}>
+                          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', borderBottom: '1px solid rgba(255,255,255,0.02)', paddingBottom: '6px' }}>
+                            <span style={{ color: 'var(--text-secondary)' }}>Images Found</span>
+                            <strong style={{ color: 'var(--text-primary)' }}>{stats.images || 0}</strong>
+                          </div>
+                          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', borderBottom: '1px solid rgba(255,255,255,0.02)', paddingBottom: '6px' }}>
+                            <span style={{ color: 'var(--text-secondary)' }}>Missing Alt attributes</span>
+                            <strong style={{ color: stats.missingAlt > 0 ? '#f87171' : 'var(--text-primary)' }}>{stats.missingAlt || 0}</strong>
+                          </div>
+                          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', borderBottom: '1px solid rgba(255,255,255,0.02)', paddingBottom: '6px' }}>
+                            <span style={{ color: 'var(--text-secondary)' }}>Missing Src attributes</span>
+                            <strong style={{ color: stats.missingSrc > 0 ? '#f87171' : 'var(--text-primary)' }}>{stats.missingSrc || 0}</strong>
+                          </div>
+                          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', borderBottom: '1px solid rgba(255,255,255,0.02)', paddingBottom: '6px' }}>
+                            <span style={{ color: 'var(--text-secondary)' }}>Duplicate Images</span>
+                            <strong style={{ color: stats.duplicateImages > 0 ? '#fbbf24' : 'var(--text-primary)' }}>{stats.duplicateImages || 0}</strong>
+                          </div>
+                          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', borderBottom: '1px solid rgba(255,255,255,0.02)', paddingBottom: '6px' }}>
+                            <span style={{ color: 'var(--text-secondary)' }}>Lazy Loaded Images</span>
+                            <strong style={{ color: 'var(--text-primary)' }}>{stats.lazyLoadedImages || 0}</strong>
+                          </div>
+                          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', borderBottom: '1px solid rgba(255,255,255,0.02)', paddingBottom: '6px' }}>
+                            <span style={{ color: 'var(--text-secondary)' }}>Images Without Size</span>
+                            <strong style={{ color: stats.imagesWithoutSize > 0 ? '#fbbf24' : 'var(--text-primary)' }}>{stats.imagesWithoutSize || 0}</strong>
+                          </div>
+                          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', borderBottom: '1px solid rgba(255,255,255,0.02)', paddingBottom: '6px', marginTop: '6px' }}>
+                            <span style={{ color: 'var(--text-secondary)', fontWeight: 600 }}>Total Links</span>
+                            <strong style={{ color: 'var(--text-primary)' }}>{stats.totalLinks || 0}</strong>
+                          </div>
+                          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', borderBottom: '1px solid rgba(255,255,255,0.02)', paddingBottom: '6px' }}>
+                            <span style={{ color: 'var(--text-secondary)' }}>Internal Links</span>
+                            <strong style={{ color: 'var(--text-primary)' }}>{stats.internalLinks || 0}</strong>
+                          </div>
+                          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', borderBottom: '1px solid rgba(255,255,255,0.02)', paddingBottom: '6px' }}>
+                            <span style={{ color: 'var(--text-secondary)' }}>External Links</span>
+                            <strong style={{ color: 'var(--text-primary)' }}>{stats.externalLinks || 0}</strong>
+                          </div>
+                          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', borderBottom: '1px solid rgba(255,255,255,0.02)', paddingBottom: '6px' }}>
+                            <span style={{ color: 'var(--text-secondary)' }}>Empty Links (# / blank)</span>
+                            <strong style={{ color: stats.emptyLinks > 0 ? '#f87171' : 'var(--text-primary)' }}>{stats.emptyLinks || 0}</strong>
+                          </div>
+                          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', borderBottom: '1px solid rgba(255,255,255,0.02)', paddingBottom: '6px' }}>
+                            <span style={{ color: 'var(--text-secondary)' }}>Duplicate Links</span>
+                            <strong style={{ color: stats.duplicateLinks > 0 ? '#fbbf24' : 'var(--text-primary)' }}>{stats.duplicateLinks || 0}</strong>
+                          </div>
+                          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', borderBottom: '1px solid rgba(255,255,255,0.02)', paddingBottom: '6px' }}>
+                            <span style={{ color: 'var(--text-secondary)' }}>Javascript Links</span>
+                            <strong style={{ color: stats.javascriptLinks > 0 ? '#fbbf24' : 'var(--text-primary)' }}>{stats.javascriptLinks || 0}</strong>
+                          </div>
+                          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                            <span style={{ color: 'var(--text-secondary)' }}>Mailto / Tel Links</span>
+                            <strong style={{ color: 'var(--text-primary)' }}>{stats.mailtoLinks || 0} / {stats.telLinks || 0}</strong>
+                          </div>
+                        </div>
+                      </div>
+
+                      {/* 4. Page Elements & Assets */}
+                      <div className="page-card__network-table" style={{ padding: '16px 20px', display: 'flex', flexDirection: 'column', gap: '14px' }}>
+                        <div style={{ display: 'flex', alignItems: 'center', gap: '8px', fontSize: '11px', fontWeight: 800, color: '#10b981', textTransform: 'uppercase', letterSpacing: '0.8px', borderBottom: '1px solid rgba(255, 255, 255, 0.05)', paddingBottom: '10px' }}>
+                          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                            <rect x="3" y="3" width="7" height="9" />
+                            <rect x="14" y="3" width="7" height="5" />
+                            <rect x="14" y="12" width="7" height="9" />
+                            <rect x="3" y="16" width="7" height="5" />
+                          </svg>
+                          Page Elements & Assets
+                        </div>
+                        <div style={{ display: 'flex', flexDirection: 'column', gap: '10px', fontSize: '12px' }}>
+                          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', borderBottom: '1px solid rgba(255,255,255,0.02)', paddingBottom: '6px' }}>
+                            <span style={{ color: 'var(--text-secondary)' }}>Buttons / Forms</span>
+                            <strong style={{ color: 'var(--text-primary)' }}>{stats.buttons || 0} / {stats.forms || 0}</strong>
+                          </div>
+                          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', borderBottom: '1px solid rgba(255,255,255,0.02)', paddingBottom: '6px' }}>
+                            <span style={{ color: 'var(--text-secondary)' }}>Inputs / Textareas / Selects</span>
+                            <strong style={{ color: 'var(--text-primary)' }}>{stats.inputs || 0} / {stats.textareas || 0} / {stats.selects || 0}</strong>
+                          </div>
+                          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', borderBottom: '1px solid rgba(255,255,255,0.02)', paddingBottom: '6px' }}>
+                            <span style={{ color: 'var(--text-secondary)' }}>Tables / Lists / List Items</span>
+                            <strong style={{ color: 'var(--text-primary)' }}>{stats.tables || 0} / {stats.lists || 0} / {stats.listItems || 0}</strong>
+                          </div>
+                          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', borderBottom: '1px solid rgba(255,255,255,0.02)', paddingBottom: '6px' }}>
+                            <span style={{ color: 'var(--text-secondary)' }}>Videos / Audio / Iframes</span>
+                            <strong style={{ color: 'var(--text-primary)' }}>{stats.videos || 0} / {stats.audio || 0} / {stats.iframes || 0}</strong>
+                          </div>
+                          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', borderBottom: '1px solid rgba(255,255,255,0.02)', paddingBottom: '6px' }}>
+                            <span style={{ color: 'var(--text-secondary)' }}>Code Blocks / Blockquotes</span>
+                            <strong style={{ color: 'var(--text-primary)' }}>{stats.codeBlocks || 0} / {stats.blockquotes || 0}</strong>
+                          </div>
+                          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', borderBottom: '1px solid rgba(255,255,255,0.02)', paddingBottom: '6px' }}>
+                            <span style={{ color: 'var(--text-secondary)' }}>Canvas / SVG Elements</span>
+                            <strong style={{ color: 'var(--text-primary)' }}>{stats.canvas || 0} / {stats.svg || 0}</strong>
+                          </div>
+                          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', borderBottom: '1px solid rgba(255,255,255,0.02)', paddingBottom: '6px', marginTop: '6px' }}>
+                            <span style={{ color: 'var(--text-secondary)' }}>JS Scripts</span>
+                            <strong style={{ color: 'var(--text-primary)' }}>{stats.jsScripts || 0}</strong>
+                          </div>
+                          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', borderBottom: '1px solid rgba(255,255,255,0.02)', paddingBottom: '6px' }}>
+                            <span style={{ color: 'var(--text-secondary)' }}>CSS Files / Inline Styles</span>
+                            <strong style={{ color: 'var(--text-primary)' }}>{stats.cssFiles || 0} / {stats.styleTags || 0}</strong>
+                          </div>
+                          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                            <span style={{ color: 'var(--text-secondary)', fontWeight: 600 }}>Total Style Bundles</span>
+                            <strong style={{ color: 'var(--text-primary)' }}>{stats.styleBundles || 0}</strong>
+                          </div>
                         </div>
                       </div>
                     </div>
-                  </div>
+                  )}
                 </div>
               </div>
 
