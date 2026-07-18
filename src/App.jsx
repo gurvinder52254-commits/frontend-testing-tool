@@ -36,6 +36,8 @@ const testingReducer = (state, action) => {
         totalPages: action.report.totalPages || 0,
         pagesCompleted: action.report.pagesCompleted || 0,
         completedPages: action.report.pages || [],
+        statusLogs: action.report.statusLogs || [],
+        liveUrl: action.report.latestLiveUrl || '',
         finalReport: action.report.status === 'complete' ? action.report : null,
       };
     case 'ADD_LOG': {
@@ -156,6 +158,10 @@ function App() {
             if (data.success && data.report) {
               setStatus(data.status === 'running' ? 'testing' : (data.status === 'complete' ? 'complete' : 'idle'));
               setFrontendUrl(data.report.frontendUrl || '');
+              if (data.report.latestLiveScreenshot) {
+                liveScreenshotRef.current = data.report.latestLiveScreenshot;
+                setScreenshotTick(1);
+              }
               dispatch({ type: 'RESTORE_TEST_STATE', report: data.report });
             }
           }
