@@ -62,7 +62,6 @@ function TestForm({ onSubmit, disabled }) {
               value={frontendUrl}
               onChange={(e) => setFrontendUrl(e.target.value)}
               required
-              autoFocus
             />
             {frontendUrl.trim() && (
               <div className="test-form__input-check">

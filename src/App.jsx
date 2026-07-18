@@ -5,12 +5,14 @@ import TestingDashboard from './components/TestingDashboard';
 import VirtualPageGrid from './components/VirtualPageGrid';
 import ReportDashboard from './components/ReportDashboard';
 import ReportsPage from './components/ReportsPage';
+import ScanPage from './components/ScanPage';
 import Header from './components/Header';
 import LoginPage from './components/LoginPage';
 import Test from './test';
 import DynamicForm from './components/DynamicForm';
 import { useAuth } from './context/AuthContext';
 import ProfilePage from './components/ProfilePage';
+import PlansPage from './components/PlansPage';
 import UrlSelection from './components/UrlSelection';
 import AuditNotification from './components/AuditNotification';
 
@@ -89,6 +91,7 @@ function App() {
   const [testId, setTestId] = useState(null);
   const [frontendUrl, setFrontendUrl] = useState('');
   const [modalImage, setModalImage] = useState(null);
+  const [showCreditsModal, setShowCreditsModal] = useState(false);
   // ID of the report selected from the Reports page — drives the useQuery below
   const [selectedTestId, setSelectedTestId] = useState(null);
 
@@ -112,6 +115,9 @@ function App() {
 
   // Connect WebSocket on mount
   useEffect(() => {
+    if ('scrollRestoration' in window.history) {
+      window.history.scrollRestoration = 'manual';
+    }
     connectWebSocket();
     return () => {
       if (wsRef.current) {
@@ -120,11 +126,16 @@ function App() {
     };
   }, []);
 
+  // Scroll to top on active view navigation
+  useEffect(() => {
+    window.scrollTo(0, 0);
+  }, [activeView]);
+
   // Handle Hash Routing and state restoration on mount/refresh/hashchange
   useEffect(() => {
     const handleHashChange = async () => {
       const hash = window.location.hash;
-      
+
       if (!isLoggedIn) return; // wait for login to fetch auth-protected state
 
       if (hash.startsWith('#/report/')) {
@@ -137,7 +148,7 @@ function App() {
         testIdRef.current = id;
         setTestId(id);
         setActiveView('dashboard');
-        
+
         try {
           const res = await fetch(`${API_URL}/test/${id}`, { headers: authHeaders });
           if (res.ok) {
@@ -157,6 +168,12 @@ function App() {
       } else if (hash === '#/profile') {
         setSelectedTestId(null);
         setActiveView('profile');
+      } else if (hash === '#/plans') {
+        setSelectedTestId(null);
+        setActiveView('plans');
+      } else if (hash === '#/scan-page') {
+        setSelectedTestId(null);
+        setActiveView('scan-page');
       } else {
         setSelectedTestId(null);
         setActiveView('dashboard');
@@ -314,6 +331,22 @@ function App() {
   }, [addLog]);
 
   const handleStartTestClick = async (fUrl, bUrl, scanType) => {
+    // Pre-check credits from profile before initiating scan flow
+    try {
+      const profileRes = await fetch(`${API_URL}/profile/info`, { headers: authHeaders });
+      if (profileRes.ok) {
+        const data = await profileRes.json();
+        if (data.success && data.profile) {
+          if (data.profile.credits <= 0) {
+            setShowCreditsModal(true);
+            return;
+          }
+        }
+      }
+    } catch (e) {
+      console.warn('Failed to pre-check credits:', e);
+    }
+
     if (scanType === 'domain') {
       setStatus('scanning_domain');
       setFrontendUrl(fUrl);
@@ -329,7 +362,7 @@ function App() {
         if (data.success && data.jobId) {
           const jobId = data.jobId;
           addLog(`Scan job queued (Job ID: ${jobId}). Waiting for worker...`, 'info');
-          
+
           const pollScanStatus = async () => {
             try {
               const statusRes = await fetch(`${API_URL}/scan-status/${jobId}`, {
@@ -389,6 +422,23 @@ function App() {
   };
 
   const handleStartTest = async (userDetails = null) => {
+    // Credit check before starting scan flow
+    try {
+      const profileRes = await fetch(`${API_URL}/profile/info`, { headers: authHeaders });
+      if (profileRes.ok) {
+        const data = await profileRes.json();
+        if (data.success && data.profile) {
+          if (data.profile.credits <= 0) {
+            setShowCreditsModal(true);
+            setShowUserDetailsForm(false);
+            return;
+          }
+        }
+      }
+    } catch (e) {
+      console.warn('Failed to pre-check credits:', e);
+    }
+
     setShowUserDetailsForm(false);
     if (!testConfig) return;
 
@@ -456,6 +506,14 @@ function App() {
       setActiveView('profile');
       setSelectedTestId(null);
       window.location.hash = '/profile';
+    } else if (view === 'plans') {
+      setActiveView('plans');
+      setSelectedTestId(null);
+      window.location.hash = '/plans';
+    } else if (view === 'scan-page') {
+      setActiveView('scan-page');
+      setSelectedTestId(null);
+      window.location.hash = '/scan-page';
     }
   }, []);
 
@@ -515,6 +573,7 @@ function App() {
   const showFooter =
     activeView === 'reports' ||
     activeView === 'profile' ||
+    activeView === 'scan-page' ||
     (activeView === 'dashboard' && status === 'idle');
 
   return (
@@ -553,6 +612,16 @@ function App() {
       {/* === PROFILE VIEW === */}
       {activeView === 'profile' && (
         <ProfilePage />
+      )}
+
+      {/* === PLANS VIEW === */}
+      {activeView === 'plans' && (
+        <PlansPage />
+      )}
+
+      {/* === SCAN PAGE VIEW (broken-link scanner) === */}
+      {activeView === 'scan-page' && (
+        <ScanPage />
       )}
 
       {/* === DASHBOARD VIEW (default) === */}
@@ -812,10 +881,10 @@ function App() {
 
       {/* === URL SELECTION SCREEN === */}
       {activeView === 'dashboard' && status === 'url_selection' && (
-        <UrlSelection 
-          initialUrls={discoveredUrls} 
+        <UrlSelection
+          initialUrls={discoveredUrls}
           baseUrl={frontendUrl}
-          onContinue={handleUrlSelectionContinue} 
+          onContinue={handleUrlSelectionContinue}
           onBack={handleNewTest}
         />
       )}
@@ -881,6 +950,67 @@ function App() {
           <div className="modal-content" onClick={(e) => e.stopPropagation()}>
             <button className="modal-close" onClick={() => setModalImage(null)}>✕</button>
             <img src={modalImage} alt="Full screenshot" />
+          </div>
+        </div>
+      )}
+
+      {showCreditsModal && (
+        <div className="modal-overlay" onClick={() => setShowCreditsModal(false)} style={{ zIndex: 10000 }}>
+          <div className="modal-content" onClick={(e) => e.stopPropagation()} style={{
+            background: 'rgba(15, 23, 42, 0.98)',
+            border: '1px solid #ff4a5a',
+            boxShadow: '0 0 40px rgba(255, 74, 90, 0.35)',
+            padding: '35px 30px',
+            borderRadius: '20px',
+            maxWidth: '460px',
+            width: '90%',
+            textAlign: 'center',
+            backdropFilter: 'blur(25px)'
+          }}>
+            <div style={{ fontSize: '3.2rem', marginBottom: '18px', filter: 'drop-shadow(0 0 10px rgba(255,74,90,0.5))' }}>⚠️</div>
+            <h3 style={{ color: '#ff4a5a', fontSize: '1.4rem', fontWeight: 800, margin: '0 0 12px 0', textTransform: 'uppercase', letterSpacing: '0.06em' }}>Credits Exhausted</h3>
+            <p style={{ color: '#94a3b8', fontSize: '0.92rem', lineHeight: 1.6, margin: '0 0 26px 0' }}>
+              Scan perform karne ke liye aapke paas credits available nahi hain. Apne limits ko extend karne aur test run karne ke liye premium subscription select karein.
+            </p>
+            <div style={{ display: 'flex', gap: '12px', justifyContent: 'center' }}>
+              <button
+                onClick={() => {
+                  setShowCreditsModal(false);
+                  window.location.hash = '#/plans';
+                }}
+                style={{
+                  background: 'linear-gradient(135deg, #00F0FF 0%, #a855f7 100%)',
+                  color: '#0b0e1a',
+                  border: 'none',
+                  borderRadius: '10px',
+                  padding: '12px 24px',
+                  fontSize: '0.85rem',
+                  fontWeight: 800,
+                  cursor: 'pointer',
+                  boxShadow: '0 4px 15px rgba(0, 240, 255, 0.3)',
+                  transition: 'opacity 0.2s'
+                }}
+                onMouseEnter={e => e.currentTarget.style.opacity = '0.9'}
+                onMouseLeave={e => e.currentTarget.style.opacity = '1'}
+              >
+                View Plans
+              </button>
+              <button
+                onClick={() => setShowCreditsModal(false)}
+                style={{
+                  background: 'rgba(255, 255, 255, 0.05)',
+                  color: '#fff',
+                  border: '1px solid rgba(255, 255, 255, 0.1)',
+                  borderRadius: '10px',
+                  padding: '12px 24px',
+                  fontSize: '0.85rem',
+                  fontWeight: 700,
+                  cursor: 'pointer'
+                }}
+              >
+                Close
+              </button>
+            </div>
           </div>
         </div>
       )}

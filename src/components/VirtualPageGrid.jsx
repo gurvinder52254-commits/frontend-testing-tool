@@ -18,7 +18,7 @@ const OVERSCAN = 5; // number of cards to render above/below viewport
  *   onScreenshotClick - callback(url) for image modal
  *   title             - optional section heading (default: "Tested Pages")
  */
-function VirtualPageGrid({ pages, onScreenshotClick, title, fillHeight = false }) {
+function VirtualPageGrid({ pages, onScreenshotClick, title, testDate, fillHeight = false }) {
   const parentRef = useRef(null);
 
   const virtualizer = useVirtualizer({
@@ -86,6 +86,7 @@ function VirtualPageGrid({ pages, onScreenshotClick, title, fillHeight = false }
                   <PageCard
                     page={page}
                     onScreenshotClick={onScreenshotClick}
+                    testDate={testDate}
                   />
                 </div>
               );

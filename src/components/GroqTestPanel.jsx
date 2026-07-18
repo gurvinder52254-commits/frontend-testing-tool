@@ -67,15 +67,36 @@ const GroqTestPanel = memo(function GroqTestPanel({ groqAnalysis }) {
           <span className="groq-panel__title">Groq AI Analysis</span>
         </div>
         {execution.totalTests > 0 && (
-          <div className="groq-panel__score-badges">
-            <span className="groq-panel__badge groq-panel__badge--pass">
-              ✅ {execution.passed || 0}
+          <div className="groq-panel__score-badges" style={{ display: 'flex', gap: '6px', alignItems: 'center' }}>
+            <span className="groq-panel__badge" style={{
+              display: 'inline-flex', alignItems: 'center', gap: '4px', padding: '3px 8px', borderRadius: '6px',
+              fontSize: '11px', fontWeight: 800, background: 'rgba(16, 185, 129, 0.12)', color: '#10b981', border: '1px solid rgba(16, 185, 129, 0.2)'
+            }}>
+              <svg style={{ width: '12px', height: '12px', fill: 'none', stroke: 'currentColor', strokeWidth: 3 }} viewBox="0 0 24 24">
+                <polyline points="20 6 9 17 4 12" />
+              </svg>
+              {execution.passed || 0}
             </span>
-            <span className="groq-panel__badge groq-panel__badge--fail">
-              ❌ {execution.failed || 0}
+            <span className="groq-panel__badge" style={{
+              display: 'inline-flex', alignItems: 'center', gap: '4px', padding: '3px 8px', borderRadius: '6px',
+              fontSize: '11px', fontWeight: 800, background: 'rgba(239, 68, 68, 0.12)', color: '#f87171', border: '1px solid rgba(239, 68, 68, 0.2)'
+            }}>
+              <svg style={{ width: '11px', height: '11px', fill: 'none', stroke: 'currentColor', strokeWidth: 3 }} viewBox="0 0 24 24">
+                <line x1="18" y1="6" x2="6" y2="18" />
+                <line x1="6" y1="6" x2="18" y2="18" />
+              </svg>
+              {execution.failed || 0}
             </span>
-            <span className="groq-panel__badge groq-panel__badge--total">
-              📊 {execution.totalTests}
+            <span className="groq-panel__badge" style={{
+              display: 'inline-flex', alignItems: 'center', gap: '4px', padding: '3px 8px', borderRadius: '6px',
+              fontSize: '11px', fontWeight: 800, background: 'rgba(255, 255, 255, 0.05)', color: 'rgba(255, 255, 255, 0.7)', border: '1px solid rgba(255, 255, 255, 0.1)'
+            }}>
+              <svg style={{ width: '12px', height: '12px', fill: 'none', stroke: 'currentColor', strokeWidth: 2 }} viewBox="0 0 24 24">
+                <line x1="18" y1="20" x2="18" y2="10" />
+                <line x1="12" y1="20" x2="12" y2="4" />
+                <line x1="6" y1="20" x2="6" y2="14" />
+              </svg>
+              {execution.totalTests}
             </span>
           </div>
         )}

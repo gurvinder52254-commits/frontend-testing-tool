@@ -27,7 +27,7 @@ const Header = ({ status, wsConnected, activeView, onNavigate }) => {
           </svg>
         </div>
         <div>
-          <div className="header__title">WebTest AI</div>
+          <div className="header__title">WebTest</div>
           <div className="header__subtitle">Intelligent Testing Platform</div>
         </div>
       </div>
@@ -45,7 +45,18 @@ const Header = ({ status, wsConnected, activeView, onNavigate }) => {
         >
           Reports
         </span>
-        <span className="header__nav-link">Settings</span>
+        <span
+          className={`header__nav-link ${activeView === 'scan-page' ? 'header__nav-link--active' : ''}`}
+          onClick={() => handleNavigate('scan-page')}
+        >
+          Scan Page
+        </span>
+        <span
+          className={`header__nav-link ${activeView === 'plans' ? 'header__nav-link--active' : ''}`}
+          onClick={() => handleNavigate('plans')}
+        >
+          Plans
+        </span>
       </nav>
 
       <div className="header__right">
@@ -63,7 +74,7 @@ const Header = ({ status, wsConnected, activeView, onNavigate }) => {
               onMouseEnter={(e) => e.currentTarget.style.boxShadow = '0 0 10px rgba(0, 240, 255, 0.5)'}
               onMouseLeave={(e) => e.currentTarget.style.boxShadow = 'none'}
             />
-            <span 
+            <span
               className={`header__user-name ${activeView === 'profile' ? 'active' : ''}`}
               onClick={() => handleNavigate('profile')}
               style={{ cursor: 'pointer', color: activeView === 'profile' ? 'var(--accent-secondary)' : '#fff' }}
@@ -107,6 +118,18 @@ const Header = ({ status, wsConnected, activeView, onNavigate }) => {
           >
             Reports
           </span>
+          <span
+            className={`header__mobile-nav-link ${activeView === 'scan-page' ? 'header__mobile-nav-link--active' : ''}`}
+            onClick={() => handleNavigate('scan-page')}
+          >
+            Scan Page
+          </span>
+          <span
+            className={`header__mobile-nav-link ${activeView === 'plans' ? 'header__mobile-nav-link--active' : ''}`}
+            onClick={() => handleNavigate('plans')}
+          >
+            Plans
+          </span>
           <span className="header__mobile-nav-link" onClick={() => setIsMenuOpen(false)}>Settings</span>
         </nav>
 
@@ -121,7 +144,7 @@ const Header = ({ status, wsConnected, activeView, onNavigate }) => {
                 onClick={() => handleNavigate('profile')}
                 style={{ cursor: 'pointer' }}
               />
-              <div 
+              <div
                 className="header__user-info-mobile"
                 onClick={() => handleNavigate('profile')}
                 style={{ cursor: 'pointer' }}

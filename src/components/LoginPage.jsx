@@ -29,7 +29,7 @@ export default function LoginPage() {
           }
         });
         const data = await res.json();
-        
+
         if (data.success && data.user) {
           // Store backend-issued 7-day session token, with fallback to Google access token
           login(data.token || tokenResponse.access_token, data.user);
@@ -81,7 +81,7 @@ export default function LoginPage() {
               </defs>
             </svg>
           </div>
-          <h1 className="login-title">WebTest AI</h1>
+          <h1 className="login-title">WebTest</h1>
           <p className="login-subtitle">Intelligent Website Testing Platform</p>
         </div>
 

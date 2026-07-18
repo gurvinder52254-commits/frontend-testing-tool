@@ -1,10 +1,14 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import VirtualPageGrid from './VirtualPageGrid';
 import AiIssuesPanel from './AiIssuesPanel';
 import {
   ReportHeader,
   SuggestedFixes,
 } from './FinalReport';
+import { useAuth } from '../context/AuthContext';
+
+const baseApiUrl = import.meta.env.VITE_API_URL || `http://${window.location.hostname}:3001`;
+const API_URL = baseApiUrl.endsWith('/api') ? baseApiUrl : `${baseApiUrl}/api`;
 
 
 /**
@@ -22,37 +26,70 @@ const SIDEBAR_ITEMS = [
   {
     key: 'pages',
     label: 'Pages',
-    icon: '📄',
+    icon: (
+      <svg className="sidebar-svg-icon" xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+        <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z" />
+        <polyline points="14 2 14 8 20 8" />
+      </svg>
+    ),
     group: null,
   },
   {
     key: 'report',
     label: 'Website Testing Report',
-    icon: '📊',
+    icon: (
+      <svg className="sidebar-svg-icon" xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+        <line x1="18" y1="20" x2="18" y2="10" />
+        <line x1="12" y1="20" x2="12" y2="4" />
+        <line x1="6" y1="20" x2="6" y2="14" />
+      </svg>
+    ),
     group: null,
   },
   {
     key: 'errors',
     label: 'Error Summary',
-    icon: '🛑',
+    icon: (
+      <svg className="sidebar-svg-icon" xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+        <polygon points="7.86 2 16.14 2 22 7.86 22 16.14 16.14 22 7.86 22 2 16.14 2 7.86 7.86 2" />
+        <line x1="12" y1="8" x2="12" y2="12" />
+        <line x1="12" y1="16" x2="12.01" y2="16" />
+      </svg>
+    ),
     group: 'Analysis',
   },
   {
     key: 'seo',
     label: 'SEO & Meta Audits',
-    icon: '🔍',
+    icon: (
+      <svg className="sidebar-svg-icon" xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+        <circle cx="11" cy="11" r="8" />
+        <line x1="21" y1="21" x2="16.65" y2="16.65" />
+      </svg>
+    ),
     group: 'Analysis',
   },
   {
     key: 'links',
     label: 'Empty Links',
-    icon: '🔗',
+    icon: (
+      <svg className="sidebar-svg-icon" xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+        <path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71" />
+        <path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71" />
+      </svg>
+    ),
     group: 'Analysis',
   },
   {
     key: 'ai',
     label: 'AI Issues',
-    icon: '🤖',
+    icon: (
+      <svg className="sidebar-svg-icon" xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+        <path d="m12 3-1.912 5.813a2 2 0 0 1-1.275 1.275L3 12l5.813 1.912a2 2 0 0 1 1.275 1.275L12 21l1.912-5.813a2 2 0 0 1 1.275-1.275L21 12l-5.813-1.912a2 2 0 0 1-1.275-1.275L12 3Z" />
+        <path d="m5 3 1 2.5L8.5 6 6 7 5 9.5 4 7 1.5 6 4 5.5z" />
+        <path d="m19 17 1 2.5 2.5.5-2.5 1-1 2.5-1-2.5-2.5-1 2.5-1z" />
+      </svg>
+    ),
     group: 'Analysis',
   },
 ];
@@ -466,6 +503,34 @@ function LinksPanel({ report }) {
 /* ── Main Component ── */
 export default function ReportDashboard({ report, onScreenshotClick, pagesTitle, onBack, onNewTest }) {
   const [section, setSection] = useState('pages');
+  const { authHeaders } = useAuth();
+  const [tier, setTier] = useState('Free');
+  const [notification, setNotification] = useState(null);
+
+  useEffect(() => {
+    fetch(`${API_URL}/profile/info`, { headers: authHeaders })
+      .then(res => res.json())
+      .then(data => {
+        if (data.success) {
+          setTier(data.profile.subscriptionTier || 'Free');
+        }
+      })
+      .catch(() => {});
+  }, [authHeaders]);
+
+  const handleExportClick = () => {
+    if (tier === 'Free') {
+      setNotification({
+        icon: '🔒',
+        title: 'PDF Export Locked',
+        message: 'Free Trial users cannot export or print reports. Please upgrade to a premium plan (Basic, Pro, or Business) to download high-fidelity PDF reports.',
+        actionUrl: '#/plans',
+        actionText: 'View Plans'
+      });
+    } else {
+      window.print();
+    }
+  };
 
   if (!report) return null;
   const pages = report.pages || [];
@@ -536,13 +601,58 @@ export default function ReportDashboard({ report, onScreenshotClick, pagesTitle,
 
         {onNewTest && (
           <button className="report-dashboard__new" onClick={onNewTest}>
-            🔄 New Audit
+            <svg className="btn-svg-icon" xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+              <path d="M21.5 2v6h-6M21.34 15.57a10 10 0 1 1-.57-8.38l5.67-5.67" />
+            </svg>
+            <span>New Audit</span>
           </button>
         )}
       </aside>
 
       {/* ── Main Content ── */}
       <main className="report-dashboard__content">
+        
+        {tier === 'Free' && (
+          <div style={{
+            background: 'linear-gradient(135deg, rgba(6, 182, 212, 0.16) 0%, rgba(168, 85, 247, 0.08) 100%)',
+            border: '1px solid rgba(6, 182, 212, 0.3)',
+            borderRadius: '12px',
+            padding: '16px 20px',
+            marginBottom: '20px',
+            display: 'flex',
+            justifyContent: 'space-between',
+            alignItems: 'center',
+            boxShadow: '0 4px 20px rgba(0, 240, 255, 0.15)'
+          }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+              <span style={{ fontSize: '1.4rem' }}>🎁</span>
+              <div>
+                <div style={{ fontWeight: 800, color: '#00F0FF', fontSize: '0.9rem' }}>Aapka free trial scan complete hua!</div>
+                <div style={{ fontSize: '0.8rem', color: 'var(--text-secondary)', marginTop: '2px' }}>
+                  Aur domains scan karne, tasks limits badhane aur white-label PDF reports download karne ke liye premium plan select karein.
+                </div>
+              </div>
+            </div>
+            <a href="#/plans" style={{
+              background: 'var(--accent-gradient)',
+              color: '#0b0e1a',
+              textDecoration: 'none',
+              padding: '10px 18px',
+              borderRadius: '10px',
+              fontSize: '0.8rem',
+              fontWeight: 800,
+              textTransform: 'uppercase',
+              letterSpacing: '0.05em',
+              transition: 'transform 0.2s',
+              flexShrink: 0
+            }}
+            onMouseEnter={e => e.currentTarget.style.transform = 'scale(1.03)'}
+            onMouseLeave={e => e.currentTarget.style.transform = 'scale(1)'}
+            >
+              Upgrade Plan
+            </a>
+          </div>
+        )}
 
         {/* Pages */}
         {section === 'pages' && (
@@ -551,6 +661,7 @@ export default function ReportDashboard({ report, onScreenshotClick, pagesTitle,
               pages={pages}
               onScreenshotClick={onScreenshotClick}
               title={pagesTitle || `Tested Pages (${pages.length})`}
+              testDate={report.testDate || report.test_date || report.createdAt}
               fillHeight
             />
           ) : (
@@ -561,7 +672,7 @@ export default function ReportDashboard({ report, onScreenshotClick, pagesTitle,
         {/* Website Testing Report (overview) */}
         {section === 'report' && (
           <div className="final-report">
-            <ReportHeader report={report} />
+            <ReportHeader report={report} tier={tier} onExportClick={handleExportClick} />
             <SuggestedFixes report={report} />
           </div>
         )}
@@ -607,10 +718,128 @@ export default function ReportDashboard({ report, onScreenshotClick, pagesTitle,
 
         {/* AI Issues */}
         {section === 'ai' && (
-          <AiIssuesPanel report={report} />
+          tier === 'Free' ? (
+            <div className="rd-content-wrap" style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', minHeight: '380px', textAlign: 'center', padding: '40px' }}>
+              <div style={{
+                background: 'linear-gradient(135deg, rgba(30, 41, 59, 0.4) 0%, rgba(15, 23, 42, 0.4) 100%)',
+                border: '1px solid rgba(255, 255, 255, 0.08)',
+                borderRadius: '24px',
+                padding: '48px 32px',
+                maxWidth: '520px',
+                backdropFilter: 'blur(20px)',
+                boxShadow: '0 20px 40px rgba(0,0,0,0.3)'
+              }}>
+                <div style={{ fontSize: '3.5rem', marginBottom: '20px', display: 'inline-block', position: 'relative' }}>
+                  🤖
+                  <span style={{ position: 'absolute', bottom: '-4px', right: '-4px', fontSize: '1.25rem', background: '#ef4444', padding: '4px', borderRadius: '50%' }}>🔒</span>
+                </div>
+                <h2 style={{ fontSize: '1.5rem', fontWeight: 800, color: '#fff', margin: '0 0 12px 0', letterSpacing: '-0.5px' }}>
+                  AI UI/UX Audits Locked
+                </h2>
+                <p style={{ fontSize: '0.9rem', color: 'var(--text-secondary)', lineHeight: '1.6', margin: '0 0 32px 0' }}>
+                  Free Trial users do not have access to AI-powered visual inspections, issue classification, and automatic task tracking. Upgrade to a premium plan to unlock.
+                </p>
+                <a href="#/plans" style={{
+                  background: 'var(--accent-gradient)',
+                  color: '#0b0e1a',
+                  textDecoration: 'none',
+                  padding: '12px 28px',
+                  borderRadius: '12px',
+                  fontSize: '0.85rem',
+                  fontWeight: 800,
+                  textTransform: 'uppercase',
+                  letterSpacing: '0.05em',
+                  display: 'inline-block',
+                  transition: 'transform 0.2s',
+                  boxShadow: '0 4px 15px rgba(0, 240, 255, 0.25)'
+                }}
+                onMouseEnter={e => e.currentTarget.style.transform = 'scale(1.03)'}
+                onMouseLeave={e => e.currentTarget.style.transform = 'scale(1)'}
+                >
+                  Upgrade Subscription
+                </a>
+              </div>
+            </div>
+          ) : (
+            <AiIssuesPanel report={report} />
+          )
         )}
       </main>
 
+      {/* ── Custom Premium Modal Alert ── */}
+      {notification && (
+        <div style={{
+          position: 'fixed',
+          top: 0,
+          left: 0,
+          width: '100%',
+          height: '100%',
+          background: 'rgba(15, 23, 42, 0.75)',
+          backdropFilter: 'blur(10px)',
+          display: 'flex',
+          justifyContent: 'center',
+          alignItems: 'center',
+          zIndex: 10000,
+          animation: 'fadeIn 0.25s ease-out'
+        }}>
+          <div style={{
+            background: 'rgba(30, 41, 59, 0.85)',
+            border: '1px solid rgba(255, 255, 255, 0.08)',
+            borderRadius: '24px',
+            padding: '40px',
+            maxWidth: '450px',
+            width: '90%',
+            textAlign: 'center',
+            boxShadow: '0 20px 50px rgba(0,0,0,0.5)',
+            backdropFilter: 'blur(20px)'
+          }}>
+            <div style={{ fontSize: '3rem', marginBottom: '20px' }}>{notification.icon || '🔒'}</div>
+            <h3 style={{ fontSize: '1.25rem', fontWeight: 800, color: '#fff', margin: '0 0 12px 0' }}>{notification.title}</h3>
+            <p style={{ fontSize: '0.85rem', color: 'var(--text-secondary)', lineHeight: '1.5', margin: '0 0 30px 0' }}>{notification.message}</p>
+            <div style={{ display: 'flex', gap: '12px', justifyContent: 'center' }}>
+              <button
+                onClick={() => setNotification(null)}
+                style={{
+                  background: 'rgba(255, 255, 255, 0.05)',
+                  border: '1px solid rgba(255, 255, 255, 0.1)',
+                  color: '#fff',
+                  padding: '10px 20px',
+                  borderRadius: '10px',
+                  fontSize: '0.8rem',
+                  fontWeight: 700,
+                  cursor: 'pointer',
+                  transition: 'background 0.2s'
+                }}
+                onMouseEnter={e => e.currentTarget.style.background = 'rgba(255, 255, 255, 0.08)'}
+                onMouseLeave={e => e.currentTarget.style.background = 'rgba(255, 255, 255, 0.05)'}
+              >
+                Close
+              </button>
+              {notification.actionUrl && (
+                <a
+                  href={notification.actionUrl}
+                  onClick={() => setNotification(null)}
+                  style={{
+                    background: 'var(--accent-gradient)',
+                    color: '#0b0e1a',
+                    padding: '10px 20px',
+                    borderRadius: '10px',
+                    fontSize: '0.8rem',
+                    fontWeight: 800,
+                    textDecoration: 'none',
+                    display: 'inline-block',
+                    transition: 'transform 0.2s'
+                  }}
+                  onMouseEnter={e => e.currentTarget.style.transform = 'scale(1.02)'}
+                  onMouseLeave={e => e.currentTarget.style.transform = 'scale(1)'}
+                >
+                  {notification.actionText || 'Upgrade'}
+                </a>
+              )}
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

@@ -28,7 +28,7 @@ function countNetwork(pages) {
 /* ============================================================
  * Header: big score, grade, url, date, meta stats (Image 2 top)
  * ============================================================ */
-export function ReportHeader({ report }) {
+export function ReportHeader({ report, tier = 'Free', onExportClick }) {
   const score = report.overallScore || 0;
   const pages = report.pages || [];
   const global = report.globalSummary || {};
@@ -88,6 +88,16 @@ export function ReportHeader({ report }) {
           <div className="final-report__meta-label">Total Buttons</div>
         </div>
       </div>
+
+      {onExportClick && (
+        <button 
+          className={`export-pdf-btn ${tier === 'Free' ? 'export-pdf-btn--locked' : ''}`}
+          onClick={onExportClick}
+          style={{ marginTop: '24px' }}
+        >
+          {tier === 'Free' ? '🔒 PDF Locked (Upgrade)' : '📄 Export PDF Report'}
+        </button>
+      )}
     </div>
   );
 }
