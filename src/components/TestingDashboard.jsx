@@ -119,6 +119,7 @@ function TestingDashboard({
   screenshotTick,
   liveUrl,
   logsEndRef,
+  errorMessage = ''
 }) {
   const leftCardRef = useRef(null);   // left log card — height synced to the right
   const rightColRef = useRef(null);   // right (Live Browser) column — the height source
@@ -168,6 +169,58 @@ function TestingDashboard({
 
   return (
     <div className="dashboard">
+      {/* If error status, show a premium centered warning block */}
+      {status === 'error' && (
+        <div className="glass-card" style={{
+          padding: '30px 40px',
+          marginBottom: '30px',
+          border: '1px solid rgba(255, 74, 90, 0.4)',
+          boxShadow: '0 0 30px rgba(255, 74, 90, 0.15)',
+          background: 'rgba(15, 23, 42, 0.6)',
+          borderRadius: '16px',
+          textAlign: 'center',
+          backdropFilter: 'blur(20px)'
+        }}>
+          <div style={{ fontSize: '3rem', marginBottom: '15px' }}>🔌🚨</div>
+          <h2 style={{ fontSize: '1.6rem', color: '#ff4a5a', fontWeight: 700, marginBottom: '10px', fontFamily: 'Space Grotesk' }}>
+            Python Engine Offline or Bad Service URL
+          </h2>
+          <p style={{ color: 'var(--text-secondary)', fontSize: '0.95rem', maxWidth: '700px', margin: '0 auto 20px', lineHeight: '1.6' }}>
+            Testing could not start because the Node.js gateway cannot establish a connection to the designated Python execution instance.
+          </p>
+
+          {errorMessage && (
+            <div style={{
+              background: 'rgba(0, 0, 0, 0.3)',
+              border: '1px solid rgba(255, 255, 255, 0.08)',
+              borderRadius: '10px',
+              padding: '15px 20px',
+              fontFamily: 'monospace',
+              fontSize: '0.85rem',
+              color: '#f8fafc',
+              textAlign: 'left',
+              maxWidth: '650px',
+              margin: '0 auto 25px',
+              overflowX: 'auto',
+              whiteSpace: 'pre-wrap',
+              boxShadow: 'inset 0 2px 8px rgba(0,0,0,0.5)'
+            }}>
+              <strong>Technical Details:</strong><br />
+              {errorMessage}
+            </div>
+          )}
+
+          <div style={{ display: 'flex', gap: '15px', justifyContent: 'center', flexWrap: 'wrap' }}>
+            <div style={{ background: 'rgba(255,255,255,0.03)', border: '1px solid rgba(255,255,255,0.06)', borderRadius: '12px', padding: '12px 20px', fontSize: '0.85rem', color: 'var(--text-secondary)' }}>
+              💡 <strong>Step 1</strong>: Check your service status in <strong>Admin Dashboard</strong>
+            </div>
+            <div style={{ background: 'rgba(255,255,255,0.03)', border: '1px solid rgba(255,255,255,0.06)', borderRadius: '12px', padding: '12px 20px', fontSize: '0.85rem', color: 'var(--text-secondary)' }}>
+              💡 <strong>Step 2</strong>: Run a live health check or restart the service
+            </div>
+          </div>
+        </div>
+      )}
+
       {/* Progress Bar */}
       <div className="progress">
         <div className="progress__bar-container">

@@ -96,6 +96,7 @@ function App() {
   const [showCreditsModal, setShowCreditsModal] = useState(false);
   // ID of the report selected from the Reports page — drives the useQuery below
   const [selectedTestId, setSelectedTestId] = useState(null);
+  const [testErrorMessage, setTestErrorMessage] = useState('');
 
   // Batch all fast-updating testing state into a reducer to avoid cascading re-renders
   const [testingState, dispatch] = useReducer(testingReducer, initialTestingState);
@@ -298,8 +299,10 @@ function App() {
         break;
 
       case 'test-error':
-        setStatus('error');
+        setStatus('idle');
+        setTestErrorMessage(data.error || 'Unknown test execution failure');
         addLog(`❌ Test failed: ${data.error}`, 'error');
+        window.location.hash = '';
         break;
 
       case 'groq-status':
@@ -472,11 +475,13 @@ function App() {
         testIdRef.current = data.testId;
         window.location.hash = `/test/${data.testId}`;
       } else {
-        setStatus('error');
+        setStatus('idle');
+        setTestErrorMessage(`Failed to start test: ${data.error}`);
         addLog(`Failed to start test: ${data.error}`, 'error');
       }
     } catch (err) {
-      setStatus('error');
+      setStatus('idle');
+      setTestErrorMessage(`Connection error: ${err.message}`);
       addLog(`Connection error: ${err.message}`, 'error');
     }
   };
@@ -485,6 +490,7 @@ function App() {
     setStatus('idle');
     setActiveView('dashboard');
     setSelectedTestId(null);
+    setTestErrorMessage('');
     setTestId(null);
     testIdRef.current = null;
     liveScreenshotRef.current = null;
@@ -658,6 +664,64 @@ function App() {
               </div>
             </div>
           </section>
+
+          {/* Connection Error Banner */}
+          {testErrorMessage && (
+            <div style={{
+              margin: '0 auto 30px',
+              maxWidth: '680px',
+              padding: '20px 25px',
+              background: 'rgba(255, 74, 90, 0.08)',
+              border: '1px solid rgba(255, 74, 90, 0.35)',
+              borderRadius: '16px',
+              display: 'flex',
+              alignItems: 'start',
+              gap: '15px',
+              textAlign: 'left',
+              boxShadow: '0 8px 32px rgba(255, 74, 90, 0.1)',
+              backdropFilter: 'blur(10px)',
+              position: 'relative'
+            }}>
+              <span style={{ fontSize: '1.4rem', lineHeight: 1 }}>🔌</span>
+              <div style={{ flex: 1 }}>
+                <h4 style={{ margin: '0 0 6px 0', color: '#ff4a5a', fontSize: '1.05rem', fontWeight: 700, fontFamily: 'Space Grotesk' }}>
+                  Connection Failed: Python Service Offline
+                </h4>
+                <p style={{ margin: 0, color: 'rgba(255,255,255,0.7)', fontSize: '0.88rem', lineHeight: '1.5' }}>
+                  The test could not be started because the assigned Python service is unreachable.
+                </p>
+                <div style={{
+                  marginTop: '10px',
+                  padding: '10px 14px',
+                  background: 'rgba(0,0,0,0.25)',
+                  borderRadius: '8px',
+                  fontFamily: 'monospace',
+                  fontSize: '0.78rem',
+                  color: '#f8fafc',
+                  wordBreak: 'break-all'
+                }}>
+                  {testErrorMessage}
+                </div>
+              </div>
+              <button 
+                onClick={() => setTestErrorMessage('')}
+                style={{
+                  background: 'none',
+                  border: 'none',
+                  color: 'rgba(255,255,255,0.4)',
+                  fontSize: '1.2rem',
+                  cursor: 'pointer',
+                  padding: '2px 6px',
+                  lineHeight: 1,
+                  transition: 'color 0.2s'
+                }}
+                onMouseEnter={(e) => { e.target.style.color = '#ff4a5a' }}
+                onMouseLeave={(e) => { e.target.style.color = 'rgba(255,255,255,0.4)' }}
+              >
+                ✕
+              </button>
+            </div>
+          )}
 
           {/* Test Form */}
           <TestForm onSubmit={handleStartTestClick} disabled={!wsConnected} />
@@ -919,6 +983,7 @@ function App() {
             screenshotTick={screenshotTick}
             liveUrl={liveUrl}
             logsEndRef={logsEndRef}
+            errorMessage={testErrorMessage}
           />
         </div>
       )}
