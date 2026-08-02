@@ -94,6 +94,7 @@ function App() {
   const [frontendUrl, setFrontendUrl] = useState('');
   const [modalImage, setModalImage] = useState(null);
   const [showCreditsModal, setShowCreditsModal] = useState(false);
+  const [showExpiredModal, setShowExpiredModal] = useState(false);
   // ID of the report selected from the Reports page — drives the useQuery below
   const [selectedTestId, setSelectedTestId] = useState(null);
   const [testErrorMessage, setTestErrorMessage] = useState('');
@@ -128,6 +129,23 @@ function App() {
       }
     };
   }, []);
+
+  // Check subscription expiration on mount
+  useEffect(() => {
+    if (isLoggedIn) {
+      fetch(`${API_URL}/profile/info`, { headers: authHeaders })
+        .then(res => res.json())
+        .then(data => {
+          if (data.success && data.profile && data.profile.subscriptionExpiresAt) {
+            const expiry = new Date(data.profile.subscriptionExpiresAt);
+            if (expiry < new Date()) {
+              setShowExpiredModal(true);
+            }
+          }
+        })
+        .catch(err => console.warn('Failed to fetch profile info on mount:', err));
+    }
+  }, [isLoggedIn, authHeaders]);
 
   // Scroll to top on active view navigation
   useEffect(() => {
@@ -346,6 +364,10 @@ function App() {
       if (profileRes.ok) {
         const data = await profileRes.json();
         if (data.success && data.profile) {
+          if (data.profile.subscriptionExpiresAt && new Date(data.profile.subscriptionExpiresAt) < new Date()) {
+            setShowExpiredModal(true);
+            return;
+          }
           if (data.profile.credits <= 0) {
             setShowCreditsModal(true);
             return;
@@ -437,6 +459,11 @@ function App() {
       if (profileRes.ok) {
         const data = await profileRes.json();
         if (data.success && data.profile) {
+          if (data.profile.subscriptionExpiresAt && new Date(data.profile.subscriptionExpiresAt) < new Date()) {
+            setShowExpiredModal(true);
+            setShowUserDetailsForm(false);
+            return;
+          }
           if (data.profile.credits <= 0) {
             setShowCreditsModal(true);
             setShowUserDetailsForm(false);
@@ -666,62 +693,74 @@ function App() {
           </section>
 
           {/* Connection Error Banner */}
-          {testErrorMessage && (
-            <div style={{
-              margin: '0 auto 30px',
-              maxWidth: '680px',
-              padding: '20px 25px',
-              background: 'rgba(255, 74, 90, 0.08)',
-              border: '1px solid rgba(255, 74, 90, 0.35)',
-              borderRadius: '16px',
-              display: 'flex',
-              alignItems: 'start',
-              gap: '15px',
-              textAlign: 'left',
-              boxShadow: '0 8px 32px rgba(255, 74, 90, 0.1)',
-              backdropFilter: 'blur(10px)',
-              position: 'relative'
-            }}>
-              <span style={{ fontSize: '1.4rem', lineHeight: 1 }}>🔌</span>
-              <div style={{ flex: 1 }}>
-                <h4 style={{ margin: '0 0 6px 0', color: '#ff4a5a', fontSize: '1.05rem', fontWeight: 700, fontFamily: 'Space Grotesk' }}>
-                  Connection Failed: Python Service Offline
-                </h4>
-                <p style={{ margin: 0, color: 'rgba(255,255,255,0.7)', fontSize: '0.88rem', lineHeight: '1.5' }}>
-                  The test could not be started because the assigned Python service is unreachable.
-                </p>
-                <div style={{
-                  marginTop: '10px',
-                  padding: '10px 14px',
-                  background: 'rgba(0,0,0,0.25)',
-                  borderRadius: '8px',
-                  fontFamily: 'monospace',
-                  fontSize: '0.78rem',
-                  color: '#f8fafc',
-                  wordBreak: 'break-all'
-                }}>
-                  {testErrorMessage}
+          {testErrorMessage && (() => {
+            const isPlanLimit = testErrorMessage.includes('Plan Limit Exceeded') || testErrorMessage.includes('Limit Exceeded');
+            const isExpired = testErrorMessage.includes('expired');
+            const title = isPlanLimit ? 'Plan Limit Exceeded' : (isExpired ? 'Subscription Expired' : 'Connection Failed: Python Service Offline');
+            const description = isPlanLimit 
+              ? 'Your current plan limits prevent this test from running.' 
+              : (isExpired 
+                ? 'Your subscription has expired. Please renew your plan.' 
+                : 'The test could not be started because the assigned Python service is unreachable.');
+            const icon = isPlanLimit || isExpired ? '🔒' : '🔌';
+
+            return (
+              <div style={{
+                margin: '0 auto 30px',
+                maxWidth: '680px',
+                padding: '20px 25px',
+                background: 'rgba(255, 74, 90, 0.08)',
+                border: '1px solid rgba(255, 74, 90, 0.35)',
+                borderRadius: '16px',
+                display: 'flex',
+                alignItems: 'start',
+                gap: '15px',
+                textAlign: 'left',
+                boxShadow: '0 8px 32px rgba(255, 74, 90, 0.1)',
+                backdropFilter: 'blur(10px)',
+                position: 'relative'
+              }}>
+                <span style={{ fontSize: '1.4rem', lineHeight: 1 }}>{icon}</span>
+                <div style={{ flex: 1 }}>
+                  <h4 style={{ margin: '0 0 6px 0', color: '#ff4a5a', fontSize: '1.05rem', fontWeight: 700, fontFamily: 'Space Grotesk' }}>
+                    {title}
+                  </h4>
+                  <p style={{ margin: 0, color: 'rgba(255,255,255,0.7)', fontSize: '0.88rem', lineHeight: '1.5' }}>
+                    {description}
+                  </p>
+                  <div style={{
+                    marginTop: '10px',
+                    padding: '10px 14px',
+                    background: 'rgba(0,0,0,0.25)',
+                    borderRadius: '8px',
+                    fontFamily: 'monospace',
+                    fontSize: '0.78rem',
+                    color: '#f8fafc',
+                    wordBreak: 'break-all'
+                  }}>
+                    {testErrorMessage}
+                  </div>
                 </div>
+                <button 
+                  onClick={() => setTestErrorMessage('')}
+                  style={{
+                    background: 'none',
+                    border: 'none',
+                    color: 'rgba(255,255,255,0.4)',
+                    fontSize: '1.2rem',
+                    cursor: 'pointer',
+                    padding: '2px 6px',
+                    lineHeight: 1,
+                    transition: 'color 0.2s'
+                  }}
+                  onMouseEnter={(e) => { e.target.style.color = '#ff4a5a' }}
+                  onMouseLeave={(e) => { e.target.style.color = 'rgba(255,255,255,0.4)' }}
+                >
+                  ✕
+                </button>
               </div>
-              <button 
-                onClick={() => setTestErrorMessage('')}
-                style={{
-                  background: 'none',
-                  border: 'none',
-                  color: 'rgba(255,255,255,0.4)',
-                  fontSize: '1.2rem',
-                  cursor: 'pointer',
-                  padding: '2px 6px',
-                  lineHeight: 1,
-                  transition: 'color 0.2s'
-                }}
-                onMouseEnter={(e) => { e.target.style.color = '#ff4a5a' }}
-                onMouseLeave={(e) => { e.target.style.color = 'rgba(255,255,255,0.4)' }}
-              >
-                ✕
-              </button>
-            </div>
-          )}
+            );
+          })()}
 
           {/* Test Form */}
           <TestForm onSubmit={handleStartTestClick} disabled={!wsConnected} />
@@ -1068,6 +1107,67 @@ function App() {
               </button>
               <button
                 onClick={() => setShowCreditsModal(false)}
+                style={{
+                  background: 'rgba(255, 255, 255, 0.05)',
+                  color: '#fff',
+                  border: '1px solid rgba(255, 255, 255, 0.1)',
+                  borderRadius: '10px',
+                  padding: '12px 24px',
+                  fontSize: '0.85rem',
+                  fontWeight: 700,
+                  cursor: 'pointer'
+                }}
+              >
+                Close
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {showExpiredModal && (
+        <div className="modal-overlay" onClick={() => setShowExpiredModal(false)} style={{ zIndex: 10000 }}>
+          <div className="modal-content" onClick={(e) => e.stopPropagation()} style={{
+            background: 'rgba(15, 23, 42, 0.98)',
+            border: '1px solid #a855f7',
+            boxShadow: '0 0 40px rgba(168, 85, 247, 0.35)',
+            padding: '35px 30px',
+            borderRadius: '20px',
+            maxWidth: '460px',
+            width: '90%',
+            textAlign: 'center',
+            backdropFilter: 'blur(25px)'
+          }}>
+            <div style={{ fontSize: '3.2rem', marginBottom: '18px', filter: 'drop-shadow(0 0 10px rgba(168,85,247,0.5))' }}>🔒</div>
+            <h3 style={{ color: '#a855f7', fontSize: '1.4rem', fontWeight: 800, margin: '0 0 12px 0', textTransform: 'uppercase', letterSpacing: '0.06em' }}>Subscription Expired</h3>
+            <p style={{ color: '#94a3b8', fontSize: '0.92rem', lineHeight: 1.6, margin: '0 0 26px 0' }}>
+              Aapka subscription plan expire ho gaya hai. Dobara scans run karne aur premium features use karne ke liye apna subscription plan renew ya upgrade karein.
+            </p>
+            <div style={{ display: 'flex', gap: '12px', justifyContent: 'center' }}>
+              <button
+                onClick={() => {
+                  setShowExpiredModal(false);
+                  window.location.hash = '#/plans';
+                }}
+                style={{
+                  background: 'linear-gradient(135deg, #00F0FF 0%, #a855f7 100%)',
+                  color: '#0b0e1a',
+                  border: 'none',
+                  borderRadius: '10px',
+                  padding: '12px 24px',
+                  fontSize: '0.85rem',
+                  fontWeight: 800,
+                  cursor: 'pointer',
+                  boxShadow: '0 4px 15px rgba(0, 240, 255, 0.3)',
+                  transition: 'opacity 0.2s'
+                }}
+                onMouseEnter={e => e.currentTarget.style.opacity = '0.9'}
+                onMouseLeave={e => e.currentTarget.style.opacity = '1'}
+              >
+                Renew / Upgrade Plan
+              </button>
+              <button
+                onClick={() => setShowExpiredModal(false)}
                 style={{
                   background: 'rgba(255, 255, 255, 0.05)',
                   color: '#fff',

@@ -4,15 +4,14 @@ import { useRef, useEffect, memo } from 'react';
 const LogItem = memo(function LogItem({ log }) {
   return (
     <div
-      className={`status-log__item ${
-        log.type === 'success'
+      className={`status-log__item ${log.type === 'success'
           ? 'status-log__item--success'
           : log.type === 'error'
-          ? 'status-log__item--error'
-          : log.type === 'ai'
-          ? 'status-log__item--ai'
-          : ''
-      }`}
+            ? 'status-log__item--error'
+            : log.type === 'ai'
+              ? 'status-log__item--ai'
+              : ''
+        }`}
     >
       <span className="status-log__time">{log.time}</span>
       <span>{log.message}</span>
@@ -247,13 +246,12 @@ function TestingDashboard({
           <div className="glass-card__header">
             <span className="glass-card__title">📋 Live Testing Log</span>
             <span
-              className={`glass-card__badge ${
-                status === 'testing'
+              className={`glass-card__badge ${status === 'testing'
                   ? 'glass-card__badge--running'
                   : status === 'error'
-                  ? 'glass-card__badge--error'
-                  : 'glass-card__badge--complete'
-              }`}
+                    ? 'glass-card__badge--error'
+                    : 'glass-card__badge--complete'
+                }`}
             >
               {status === 'testing' ? '● Running' : status === 'error' ? '● Error' : '● Done'}
             </span>

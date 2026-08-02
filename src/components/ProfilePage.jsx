@@ -512,7 +512,7 @@ const ProfilePage = () => {
           <div style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
 
             {/* FREE PLAN: Show Total URLs Scanned (X / 5) as primary tracker */}
-            {tier === 'Free' ? (
+            {tier === 'Free' && (
               <div>
                 <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '0.8rem', marginBottom: '8px' }}>
                   <span style={{ fontWeight: 700, color: '#e2e8f0' }}>Total URLs Scanned</span>
@@ -535,25 +535,6 @@ const ProfilePage = () => {
                   {totalUrlsTested >= 5
                     ? '⛔ Limit reached — upgrade to scan more URLs'
                     : `${5 - totalUrlsTested} URL${5 - totalUrlsTested !== 1 ? 's' : ''} remaining on Free plan`}
-                </div>
-              </div>
-            ) : (
-              /* PAID PLANS: Show Unique Domains Tracked */
-              <div>
-                <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '0.8rem', marginBottom: '8px' }}>
-                  <span style={{ fontWeight: 700, color: '#e2e8f0' }}>Unique Domains Tracked</span>
-                  <span style={{ fontWeight: 800, color: '#00F0FF' }}>{stats.uniqueDomainsCount || 0} / {
-                    tier === 'Basic' ? 20 : (tier === 'Pro' ? 50 : 100)
-                  }</span>
-                </div>
-                <div style={{ height: '8px', background: 'rgba(255, 255, 255, 0.05)', borderRadius: '4px', overflow: 'hidden' }}>
-                  <div style={{
-                    height: '100%',
-                    background: 'linear-gradient(90deg, #00F0FF 0%, #a855f7 100%)',
-                    width: `${Math.min(100, Math.round(((stats.uniqueDomainsCount || 0) / (tier === 'Basic' ? 20 : (tier === 'Pro' ? 50 : 100))) * 100))}%`,
-                    borderRadius: '4px',
-                    transition: 'width 0.5s ease-in-out'
-                  }} />
                 </div>
               </div>
             )}

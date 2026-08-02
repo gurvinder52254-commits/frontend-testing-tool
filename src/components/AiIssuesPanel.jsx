@@ -227,7 +227,7 @@ function IssueDrawer({ issue, onClose, onAction, onVerify, verifyingId }) {
 }
 
 /* ══ Main Panel ══ */
-export default function AiIssuesPanel({ report }) {
+export default function AiIssuesPanel({ report, tier }) {
   const { authHeaders } = useAuth();
 
   const [issues, setIssues] = useState([]);
@@ -367,6 +367,49 @@ export default function AiIssuesPanel({ report }) {
           {loading ? <span className="ai-action-spinner" /> : '↻'} Refresh Issues
         </button>
       </div>
+
+      {/* Plan-based Task limit banner */}
+      {tier === 'Free' && (
+        <div style={{
+          background: 'linear-gradient(135deg, rgba(168, 85, 247, 0.16) 0%, rgba(6, 182, 212, 0.08) 100%)',
+          border: '1px solid rgba(168, 85, 247, 0.3)',
+          borderRadius: '12px',
+          padding: '16px 20px',
+          marginBottom: '20px',
+          display: 'flex',
+          justifyContent: 'space-between',
+          alignItems: 'center',
+          boxShadow: '0 4px 20px rgba(168, 85, 247, 0.15)'
+        }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+            <span style={{ fontSize: '1.4rem' }}>⚠️</span>
+            <div>
+              <div style={{ fontWeight: 800, color: '#a855f7', fontSize: '0.9rem' }}>Free Trial AI Issues Limit</div>
+              <div style={{ fontSize: '0.8rem', color: 'var(--text-secondary)', marginTop: '2px' }}>
+                You have used {issues.length} / 5 task limits. Upgrade to a premium plan to unlock unlimited tasks.
+              </div>
+            </div>
+          </div>
+          <a href="#/plans" style={{
+            background: 'linear-gradient(135deg, #00F0FF 0%, #a855f7 100%)',
+            color: '#0b0e1a',
+            textDecoration: 'none',
+            padding: '8px 16px',
+            borderRadius: '8px',
+            fontSize: '0.78rem',
+            fontWeight: 800,
+            textTransform: 'uppercase',
+            letterSpacing: '0.05em',
+            transition: 'transform 0.2s',
+            flexShrink: 0
+          }}
+          onMouseEnter={e => e.currentTarget.style.transform = 'scale(1.03)'}
+          onMouseLeave={e => e.currentTarget.style.transform = 'scale(1)'}
+          >
+            Upgrade Plan
+          </a>
+        </div>
+      )}
 
       {error && (
         <div className="ai-error-banner">

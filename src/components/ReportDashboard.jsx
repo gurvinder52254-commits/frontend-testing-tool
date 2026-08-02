@@ -718,51 +718,7 @@ export default function ReportDashboard({ report, onScreenshotClick, pagesTitle,
 
         {/* AI Issues */}
         {section === 'ai' && (
-          tier === 'Free' ? (
-            <div className="rd-content-wrap" style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', minHeight: '380px', textAlign: 'center', padding: '40px' }}>
-              <div style={{
-                background: 'linear-gradient(135deg, rgba(30, 41, 59, 0.4) 0%, rgba(15, 23, 42, 0.4) 100%)',
-                border: '1px solid rgba(255, 255, 255, 0.08)',
-                borderRadius: '24px',
-                padding: '48px 32px',
-                maxWidth: '520px',
-                backdropFilter: 'blur(20px)',
-                boxShadow: '0 20px 40px rgba(0,0,0,0.3)'
-              }}>
-                <div style={{ fontSize: '3.5rem', marginBottom: '20px', display: 'inline-block', position: 'relative' }}>
-                  🤖
-                  <span style={{ position: 'absolute', bottom: '-4px', right: '-4px', fontSize: '1.25rem', background: '#ef4444', padding: '4px', borderRadius: '50%' }}>🔒</span>
-                </div>
-                <h2 style={{ fontSize: '1.5rem', fontWeight: 800, color: '#fff', margin: '0 0 12px 0', letterSpacing: '-0.5px' }}>
-                  AI UI/UX Audits Locked
-                </h2>
-                <p style={{ fontSize: '0.9rem', color: 'var(--text-secondary)', lineHeight: '1.6', margin: '0 0 32px 0' }}>
-                  Free Trial users do not have access to AI-powered visual inspections, issue classification, and automatic task tracking. Upgrade to a premium plan to unlock.
-                </p>
-                <a href="#/plans" style={{
-                  background: 'var(--accent-gradient)',
-                  color: '#0b0e1a',
-                  textDecoration: 'none',
-                  padding: '12px 28px',
-                  borderRadius: '12px',
-                  fontSize: '0.85rem',
-                  fontWeight: 800,
-                  textTransform: 'uppercase',
-                  letterSpacing: '0.05em',
-                  display: 'inline-block',
-                  transition: 'transform 0.2s',
-                  boxShadow: '0 4px 15px rgba(0, 240, 255, 0.25)'
-                }}
-                onMouseEnter={e => e.currentTarget.style.transform = 'scale(1.03)'}
-                onMouseLeave={e => e.currentTarget.style.transform = 'scale(1)'}
-                >
-                  Upgrade Subscription
-                </a>
-              </div>
-            </div>
-          ) : (
-            <AiIssuesPanel report={report} />
-          )
+          <AiIssuesPanel report={report} tier={tier} />
         )}
       </main>
 

@@ -421,7 +421,6 @@ const PlansPage = () => {
 
           {/* Features list */}
           <div style={{ flex: 1, display: 'flex', flexDirection: 'column', gap: '20px', marginBottom: '40px', fontSize: '0.9rem', color: '#cbd5e1' }}>
-            <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}><IconDomain /> <span>{PLANS_DATA.free.features.domains}</span></div>
             <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}><IconTask /> <span>{PLANS_DATA.free.features.tasks}</span></div>
             <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}><IconScan /> <span>{PLANS_DATA.free.features.scans}</span></div>
             <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}><IconReport /> <span>{PLANS_DATA.free.features.reports}</span></div>
@@ -508,7 +507,6 @@ const PlansPage = () => {
 
               {/* Features list */}
               <div style={{ flex: 1, display: 'flex', flexDirection: 'column', gap: '20px', marginBottom: '40px', fontSize: '0.9rem', color: '#cbd5e1' }}>
-                <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}><IconDomain /> <span><strong>{plan.features.domains}</strong></span></div>
                 <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}><IconTask /> <span>{plan.features.tasks}</span></div>
                 <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}><IconScan /> <span><strong>{plan.features.scans}</strong></span></div>
                 <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}><IconReport /> <span>{plan.features.reports}</span></div>
