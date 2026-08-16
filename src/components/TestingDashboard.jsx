@@ -89,13 +89,59 @@ const LiveBrowserView = memo(function LiveBrowserView({ liveScreenshotRef, scree
               transition: 'opacity 0.15s ease',
             }}
           />
+
           {screenshotTick === 0 && (
-            <div className="live-browser__placeholder" style={{ minHeight: '400px', display: 'flex', flexDirection: 'column', justifyContent: 'center' }}>
-              <div className="live-browser__placeholder-icon">🖥️</div>
-              <p>Browser will appear here when testing starts</p>
-              {status === 'testing' && <div className="spinner spinner--sm" style={{ marginTop: 12 }} />}
+            <div className="live-browser__placeholder" style={{ minHeight: '400px', display: 'flex', flexDirection: 'column', justifyContent: 'center', alignItems: 'center', position: 'relative', overflow: 'hidden' }}>
+              <div className="browser-3d-container">
+                <div className="browser-3d-scene">
+                  {/* Glowing background grid */}
+                  <div className="browser-3d-grid" />
+                  
+                  {/* Floating 3D Browser Window */}
+                  <div className="browser-3d-window">
+                    <div className="browser-3d-header">
+                      <div className="browser-3d-buttons">
+                        <span className="browser-3d-dot red" />
+                        <span className="browser-3d-dot yellow" />
+                        <span className="browser-3d-dot green" />
+                      </div>
+                      <div className="browser-3d-search" />
+                    </div>
+                    <div className="browser-3d-body">
+                      {/* Wireframe Mockup Content */}
+                      <div className="browser-3d-wireframe hero" />
+                      <div className="browser-3d-wireframe-row">
+                        <div className="browser-3d-wireframe card" />
+                        <div className="browser-3d-wireframe card" />
+                        <div className="browser-3d-wireframe card" />
+                      </div>
+                    </div>
+                    {/* Glowing Laser Scan Bar */}
+                    <div className="browser-3d-scan-line" />
+                  </div>
+                  
+                  {/* Technical circular orbits rotating in 3D space */}
+                  <div className="tech-ring outer" />
+                  <div className="tech-ring inner" />
+                </div>
+              </div>
+              <div className="browser-3d-info" style={{ marginTop: '20px', zIndex: 10, textAlign: 'center' }}>
+                <p style={{ margin: 0, fontWeight: 600, fontSize: '0.98rem', color: '#fff', textShadow: '0 2px 4px rgba(0,0,0,0.5)' }}>
+                  Initializing Automation Engine
+                </p>
+                <p style={{ margin: '5px 0 0 0', fontSize: '0.8rem', color: 'var(--text-secondary)' }}>
+                  Connecting to browser instance & preloading viewport...
+                </p>
+                {status === 'testing' && (
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '8px', justifyContent: 'center', marginTop: '12px' }}>
+                    <div className="spinner spinner--sm" />
+                    <span style={{ fontSize: '0.75rem', color: 'var(--accent-primary)', fontWeight: 600 }}>Active testing socket listening</span>
+                  </div>
+                )}
+              </div>
             </div>
           )}
+
           {status === 'testing' && screenshotTick > 0 && (
             <div className="live-browser__live-badge">
               <span className="live-browser__live-dot" />

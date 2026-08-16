@@ -42,8 +42,40 @@ const testingReducer = (state, action) => {
       };
     case 'ADD_LOG': {
       const newLogs = [...state.statusLogs, action.payload];
-      return { ...state, statusLogs: newLogs.length > 150 ? newLogs.slice(-100) : newLogs };
+      let progress = state.progress;
+      if (state.totalPages > 0) {
+        const baseProgress = Math.round((state.pagesCompleted / state.totalPages) * 100);
+        const currentPageWeight = 100 / state.totalPages;
+        let subProgressWeight = 0;
+
+        for (const log of newLogs.slice(-10)) {
+          const msg = log.message || '';
+          if (msg.includes('Opening homepage') || msg.includes('Opening page') || msg.includes('Launching browser')) {
+            subProgressWeight = Math.max(subProgressWeight, 0.15);
+          } else if (msg.includes('loaded in')) {
+            subProgressWeight = Math.max(subProgressWeight, 0.30);
+          } else if (msg.includes('Discovered')) {
+            subProgressWeight = Math.max(subProgressWeight, 0.40);
+          } else if (msg.includes('Checking images')) {
+            subProgressWeight = Math.max(subProgressWeight, 0.60);
+          } else if (msg.includes('Checking videos')) {
+            subProgressWeight = Math.max(subProgressWeight, 0.75);
+          } else if (msg.includes('Checking links')) {
+            subProgressWeight = Math.max(subProgressWeight, 0.85);
+          } else if (msg.includes('AI analyzing') || msg.includes('AI analysis') || msg.includes('analyzing page')) {
+            subProgressWeight = Math.max(subProgressWeight, 0.95);
+          }
+        }
+        const calculated = Math.round(baseProgress + (subProgressWeight * currentPageWeight));
+        progress = Math.min(99, Math.max(state.progress, calculated));
+      }
+      return { 
+        ...state, 
+        statusLogs: newLogs.length > 150 ? newLogs.slice(-100) : newLogs,
+        progress 
+      };
     }
+
     case 'LINKS_DISCOVERED':
       return { ...state, totalPages: action.totalPages };
     case 'PAGE_START':

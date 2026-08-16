@@ -1512,6 +1512,194 @@ body::before {
   opacity: 0.5;
 }
 
+/* 3D Browser Animation Styles */
+.browser-3d-container {
+  perspective: 1000px;
+  width: 100%;
+  height: 220px;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  position: relative;
+}
+
+.browser-3d-scene {
+  position: relative;
+  width: 320px;
+  height: 180px;
+  transform-style: preserve-3d;
+  transform: rotateX(25deg) rotateY(-20deg);
+  animation: floatScene 8s ease-in-out infinite alternate;
+}
+
+@keyframes floatScene {
+  0% {
+    transform: rotateX(20deg) rotateY(-15deg) translateY(0px);
+  }
+  100% {
+    transform: rotateX(28deg) rotateY(-25deg) translateY(-10px);
+  }
+}
+
+.browser-3d-grid {
+  position: absolute;
+  top: -50px;
+  left: -50px;
+  right: -50px;
+  bottom: -50px;
+  background-image: linear-gradient(rgba(99, 102, 241, 0.05) 1px, transparent 1px),
+                    linear-gradient(90deg, rgba(99, 102, 241, 0.05) 1px, transparent 1px);
+  background-size: 15px 15px;
+  transform: rotateX(90deg) translateZ(-40px);
+  transform-style: preserve-3d;
+  mask-image: radial-gradient(ellipse at center, black, transparent 70%);
+  -webkit-mask-image: radial-gradient(ellipse at center, black, transparent 70%);
+}
+
+.browser-3d-window {
+  position: absolute;
+  width: 100%;
+  height: 100%;
+  background: rgba(15, 23, 42, 0.65);
+  border: 1.5px solid rgba(99, 102, 241, 0.35);
+  border-radius: 12px;
+  box-shadow: 0 30px 70px rgba(0, 0, 0, 0.6), 
+              0 0 40px rgba(99, 102, 241, 0.15);
+  backdrop-filter: blur(12px);
+  overflow: hidden;
+  transform-style: preserve-3d;
+}
+
+.browser-3d-header {
+  height: 28px;
+  background: rgba(30, 41, 59, 0.8);
+  border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+  display: flex;
+  align-items: center;
+  padding: 0 10px;
+  gap: 12px;
+}
+
+.browser-3d-buttons {
+  display: flex;
+  gap: 5px;
+}
+
+.browser-3d-dot {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+}
+.browser-3d-dot.red { background: #ef4444; }
+.browser-3d-dot.yellow { background: #eab308; }
+.browser-3d-dot.green { background: #22c55e; }
+
+.browser-3d-search {
+  flex: 1;
+  height: 14px;
+  background: rgba(15, 23, 42, 0.6);
+  border-radius: 4px;
+  max-width: 180px;
+  border: 1px solid rgba(255, 255, 255, 0.05);
+}
+
+.browser-3d-body {
+  padding: 15px;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.browser-3d-wireframe {
+  background: rgba(99, 102, 241, 0.08);
+  border-radius: 6px;
+  border: 1px dashed rgba(99, 102, 241, 0.15);
+}
+
+.browser-3d-wireframe.hero {
+  height: 45px;
+}
+
+.browser-3d-wireframe-row {
+  display: flex;
+  gap: 8px;
+}
+
+.browser-3d-wireframe.card {
+  flex: 1;
+  height: 38px;
+}
+
+.browser-3d-scan-line {
+  position: absolute;
+  left: 0;
+  right: 0;
+  height: 6px;
+  background: linear-gradient(to bottom, transparent, rgba(99, 102, 241, 0.8), rgba(139, 92, 246, 0.8), transparent);
+  box-shadow: 0 0 15px rgba(99, 102, 241, 0.6), 
+              0 0 25px rgba(139, 92, 246, 0.4);
+  animation: scanBrowser 3.5s cubic-bezier(0.4, 0, 0.2, 1) infinite;
+}
+
+@keyframes scanBrowser {
+  0% {
+    top: -10px;
+    opacity: 0;
+  }
+  10% {
+    opacity: 1;
+  }
+  90% {
+    opacity: 1;
+  }
+  100% {
+    top: calc(100% + 10px);
+    opacity: 0;
+  }
+}
+
+/* Orbiting Rings */
+.tech-ring {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  border-radius: 50%;
+  border: 1px dashed rgba(99, 102, 241, 0.25);
+  transform-style: preserve-3d;
+}
+
+.tech-ring.outer {
+  width: 420px;
+  height: 420px;
+  margin-top: -210px;
+  margin-left: -210px;
+  transform: translateZ(-20px) rotateX(75deg) rotateY(0deg);
+  animation: rotateOuterRing 25s linear infinite;
+}
+
+.tech-ring.inner {
+  width: 360px;
+  height: 360px;
+  margin-top: -180px;
+  margin-left: -180px;
+  border-style: solid;
+  border-width: 1.5px;
+  border-color: rgba(139, 92, 246, 0.15) transparent;
+  transform: translateZ(-10px) rotateX(75deg) rotateY(0deg);
+  animation: rotateInnerRing 15s linear infinite reverse;
+}
+
+@keyframes rotateOuterRing {
+  0% { transform: translateZ(-20px) rotateX(75deg) rotateZ(0deg); }
+  100% { transform: translateZ(-20px) rotateX(75deg) rotateZ(360deg); }
+}
+
+@keyframes rotateInnerRing {
+  0% { transform: translateZ(-10px) rotateX(75deg) rotateZ(0deg); }
+  100% { transform: translateZ(-10px) rotateX(75deg) rotateZ(360deg); }
+}
+
+
 .live-browser__live-badge {
   position: absolute;
   top: 12px;
